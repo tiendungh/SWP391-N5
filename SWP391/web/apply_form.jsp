@@ -10,7 +10,11 @@
     </head>
     <body class="pb-body">
         <div class="pb-topnav">
+<<<<<<< ours
             <a class="pb-logo" href="${pageContext.request.contextPath}/jobs">JOB<span>BOARD</span></a>
+=======
+            <a class="pb-logo" href="${pageContext.request.contextPath}/jobs">${initParam.companyName}</a>
+>>>>>>> theirs
             <a class="pb-nav-link" href="${pageContext.request.contextPath}/jobs?id=${job.jobPostId}">← Quay lại tin tuyển dụng</a>
         </div>
         <div class="pb-hero">
@@ -22,7 +26,11 @@
             <div class="pb-card">
                 <c:if test="${not empty error}"><div class="pb-alert pb-alert-error">${error}</div></c:if>
 
+<<<<<<< ours
                 <form method="post" action="${pageContext.request.contextPath}/apply" enctype="multipart/form-data">
+=======
+                    <form method="post" action="${pageContext.request.contextPath}/apply" enctype="multipart/form-data">
+>>>>>>> theirs
                     <input type="hidden" name="jobPostId" value="${job.jobPostId}"/>
 
                     <div class="pb-section-title">Thông tin liên hệ</div>
@@ -79,7 +87,11 @@
                     <div class="pb-form-row">
                         <div class="pb-field">
                             <label>Ngày sinh</label>
+<<<<<<< ours
                             <input type="date" name="birthday"/>
+=======
+                            <input type="date" name="birthday" id="birthday"/>
+>>>>>>> theirs
                         </div>
                         <div class="pb-field">
                             <label>Giới tính</label>
@@ -104,5 +116,20 @@
                 </form>
             </div>
         </div>
+<<<<<<< ours
+=======
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const birthdayInput = document.getElementById("birthday");
+                const today = new Date();
+
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, "0");
+                const day = String(today.getDate()).padStart(2, "0");
+
+                birthdayInput.max = year + "-" + month + "-" + day;
+            });
+        </script>
+>>>>>>> theirs
     </body>
 </html>

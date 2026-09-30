@@ -1,4 +1,8 @@
+<<<<<<< ours
 package controller.JobPost;
+=======
+package controller;
+>>>>>>> theirs
 
 import dal.ApplyDAO;
 import dal.CVDAO;
@@ -20,6 +24,10 @@ import model.CVModel;
 import model.CandidateModel;
 import model.JobPostModel;
 import tool.EncodePassword;
+<<<<<<< ours
+=======
+import java.time.LocalDate;
+>>>>>>> theirs
 
 /**
  * Public "ứng tuyển" form - no login required. Looks up (or creates) the
@@ -125,7 +133,23 @@ public class ApplyPublicServlet extends HttpServlet {
         cv.setEducation(education);
         cv.setField(field);
         cv.setCurrentSalary(currentSalaryStr == null || currentSalaryStr.isBlank() ? null : new BigDecimal(currentSalaryStr));
+<<<<<<< ours
         cv.setBirthday(birthdayStr == null || birthdayStr.isBlank() ? null : Date.valueOf(birthdayStr));
+=======
+        if (birthdayStr != null && !birthdayStr.isBlank()) {
+            LocalDate birthday = LocalDate.parse(birthdayStr);
+            LocalDate today = LocalDate.now();
+
+            if (birthday.isAfter(today)) {
+                forwardWithError(request, response, job, "Ngày sinh không được lớn hơn ngày hiện tại.");
+                return;
+            }
+
+            cv.setBirthday(Date.valueOf(birthday));
+        } else {
+            cv.setBirthday(null);
+        }
+>>>>>>> theirs
         cv.setNationality(nationality);
         cv.setGender(gender);
         cv.setFileData(savedFileName);

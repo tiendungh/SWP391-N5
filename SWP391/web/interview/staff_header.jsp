@@ -13,12 +13,35 @@
             <aside class="iv-sidebar">
                 <div class="iv-logo">JOB<span>BOARD</span> · HR</div>
                 <nav class="iv-nav">
+<<<<<<< ours
                     <a href="${pageContext.request.contextPath}/interview-schedule"
                        class="${currentNav == 'schedule' ? 'active' : ''}">📅 Lên lịch phỏng vấn</a>
                     <a href="${pageContext.request.contextPath}/interview-calendar"
                        class="${currentNav == 'calendar' ? 'active' : ''}">🗓️ Lịch phỏng vấn</a>
                     <a href="${pageContext.request.contextPath}/barem"
                        class="${currentNav == 'barem' ? 'active' : ''}">📋 Barem đánh giá</a>
+=======
+                    <c:if test="${sessionScope.roleName == 'HR Staff' || sessionScope.roleName == 'Manager'}">
+                        <a href="${pageContext.request.contextPath}/job-post"
+                           class="${currentNav == 'jobpost' ? 'active' : ''}">📝 Tạo JD</a>
+                        <a href="${pageContext.request.contextPath}/screening"
+                           class="${currentNav == 'screening' ? 'active' : ''}">🔎 Sơ lọc hồ sơ</a>
+                        <a href="${pageContext.request.contextPath}/interview-schedule"
+                           class="${currentNav == 'schedule' ? 'active' : ''}">📅 Lên lịch phỏng vấn</a>
+                        <a href="${pageContext.request.contextPath}/interview-calendar"
+                           class="${currentNav == 'calendar' ? 'active' : ''}">🗓️ Lịch phỏng vấn</a>
+                        <a href="${pageContext.request.contextPath}/barem"
+                           class="${currentNav == 'barem' ? 'active' : ''}">📋 Barem đánh giá</a>
+                        <a href="${pageContext.request.contextPath}/employee-profiles"
+                           class="${currentNav == 'employeeProfiles' ? 'active' : ''}">🗂️ Hồ sơ nhân viên</a>
+                    </c:if>
+                    <c:if test="${sessionScope.roleName == 'Manager'}">
+                        <a href="${pageContext.request.contextPath}/request-account"
+                           class="${currentNav == 'requestAccount' ? 'active' : ''}">📨 Yêu cầu tạo tài khoản</a>
+                    </c:if>
+                    <a href="${pageContext.request.contextPath}/my-profile-documents"
+                       class="${currentNav == 'myProfile' ? 'active' : ''}">👤 Hồ sơ của tôi</a>
+>>>>>>> theirs
                 </nav>
                 <div class="iv-sidebar-footer">
                     Đăng nhập với<br>

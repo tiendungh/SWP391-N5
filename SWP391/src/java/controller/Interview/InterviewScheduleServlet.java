@@ -19,10 +19,9 @@ import model.InterviewModel;
 import tool.SessionUtil;
 
 /**
- * Two views in one servlet:
- *  - /interview-schedule                -> worklist of applications that can be scheduled
- *  - /interview-schedule?applyId=X      -> scheduling form for that specific application
- * POST creates the Interview + its participant list.
+ * Two views in one servlet: - /interview-schedule -> worklist of applications
+ * that can be scheduled - /interview-schedule?applyId=X -> scheduling form for
+ * that specific application POST creates the Interview + its participant list.
  */
 @WebServlet("/interview-schedule")
 public class InterviewScheduleServlet extends HttpServlet {
@@ -30,7 +29,9 @@ public class InterviewScheduleServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!SessionUtil.requireStaffAccess(request, response)) return;
+        if (!SessionUtil.requireStaffAccess(request, response)) {
+            return;
+        }
 
         ApplyDAO applyDAO = new ApplyDAO();
         String applyIdParam = request.getParameter("applyId");
@@ -70,7 +71,9 @@ public class InterviewScheduleServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!SessionUtil.requireStaffAccess(request, response)) return;
+        if (!SessionUtil.requireStaffAccess(request, response)) {
+            return;
+        }
 
         request.setCharacterEncoding("UTF-8");
 
@@ -89,7 +92,7 @@ public class InterviewScheduleServlet extends HttpServlet {
 
         if (participantIds == null || participantIds.length == 0) {
             request.setAttribute("error", "Vui lòng chọn ít nhất một người phỏng vấn.");
-            request.getRequestDispatcher("/interview-schedule?applyId=" + applyId).forward(request, response);
+            request.getRequestDispatcher("interview/interview-schedule.jsp").forward(request, response);
             return;
         }
 
@@ -97,9 +100,38 @@ public class InterviewScheduleServlet extends HttpServlet {
         iv.setApplyId(applyId);
         iv.setBaremId(baremId);
         iv.setInterviewRound(round);
-        iv.setInterviewDate(Date.valueOf(dateStr));
-        iv.setStartTime(Time.valueOf(startStr + ":00"));
-        iv.setEndTime(endStr == null || endStr.isBlank() ? null : Time.valueOf(endStr + ":00"));
+        //iv.setInterviewDate(Date.valueOf(dateStr));
+        //iv.setStartTime(Time.valueOf(startStr + ":00"));
+        //iv.setEndTime(endStr == null || endStr.isBlank() ? null : Time.valueOf(endStr + ":00"));
+        Date interviewDate = Date.valueOf(dateStr);
+        Time startTime = Time.valueOf(startStr + ":00");
+        Time endTime = endStr == null || endStr.isBlank()
+                ? null
+                : Time.valueOf(endStr + ":00");
+
+        Date today = new Date(System.currentTimeMillis());
+
+        if (interviewDate.before(today)) {
+            request.setAttribute("error",
+                    "Ngày phỏng vấn không được ở trong quá khứ.");
+            request.getRequestDispatcher(
+                    "/interview-schedule?applyId=" + applyId
+            ).forward(request, response);
+            return;
+        }
+
+        if (endTime != null && !endTime.after(startTime)) {
+            request.setAttribute("error",
+                    "Giờ kết thúc phải lớn hơn giờ bắt đầu.");
+            request.getRequestDispatcher(
+                    "/interview-schedule?applyId=" + applyId
+            ).forward(request, response);
+            return;
+        }
+
+        iv.setInterviewDate(interviewDate);
+        iv.setStartTime(startTime);
+        iv.setEndTime(endTime);
         iv.setInterviewType(type);
         iv.setLocation(location);
         iv.setMeetingLink(meetingLink);
@@ -107,7 +139,9 @@ public class InterviewScheduleServlet extends HttpServlet {
         iv.setCreatedBy(SessionUtil.getStaffId(request));
 
         List<Integer> ids = new ArrayList<>();
-        for (String s : participantIds) ids.add(Integer.parseInt(s));
+        for (String s : participantIds) {
+            ids.add(Integer.parseInt(s));
+        }
         Integer leadId = (leadIdStr != null && !leadIdStr.isBlank()) ? Integer.parseInt(leadIdStr) : null;
 
         InterviewDAO interviewDAO = new InterviewDAO();
