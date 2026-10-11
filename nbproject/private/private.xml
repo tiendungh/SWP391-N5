@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/controller/Profile/ProfileDocumentDownloadServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/web/profile/department_manage.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/web/profile/my_profile_documents.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/dal/StaffDAO.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/web/profile/department_detail.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/dal/DepartmentDAO.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/controller/Profile/DepartmentDetailServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/web/interview/staff_header.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/web/profile/employee_profile_manage.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/controller/Profile/MyProfileDocumentsServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/web/profile/department_member_edit.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/controller/Profile/EmployeeProfileManageServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/controller/Profile/DepartmentMemberEditServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/model/DepartmentModel.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-main/SWP391-N5-main/SWP391/src/java/controller/Profile/DepartmentManageServlet.java</file>
+        </group>
+    </open-files>
+</project-private>

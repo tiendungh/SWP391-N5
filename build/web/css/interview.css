@@ -1,0 +1,401 @@
+/* ============================================================
+   Interview scheduling / evaluation module
+   Internal HR & Manager tool - kept visually consistent with
+   login.jsp's blue/teal palette, but as a compact dashboard UI.
+   ============================================================ */
+
+:root {
+    --iv-primary: #2563eb;
+    --iv-primary-dark: #1d4ed8;
+    --iv-teal: #0f766e;
+    --iv-bg: #f1f5f9;
+    --iv-card: #ffffff;
+    --iv-border: #e2e8f0;
+    --iv-text: #0f172a;
+    --iv-muted: #64748b;
+    --iv-danger: #dc2626;
+    --iv-success: #16a34a;
+    --iv-warning: #d97706;
+    --iv-radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body.iv-body {
+    margin: 0;
+    background: var(--iv-bg);
+    font-family: "Roboto", Arial, sans-serif;
+    color: var(--iv-text);
+    min-height: 100vh;
+}
+
+.iv-shell { display: flex; min-height: 100vh; }
+
+/* ---------- Sidebar ---------- */
+.iv-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #0f172a, #1e293b);
+    color: #e2e8f0;
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+.iv-sidebar .iv-logo {
+    font-weight: 900;
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 28px;
+    letter-spacing: .5px;
+}
+.iv-sidebar .iv-logo span { color: #60a5fa; }
+.iv-nav a {
+    display: block;
+    color: #cbd5e1;
+    text-decoration: none;
+    padding: 11px 14px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: .15s;
+}
+.iv-nav a:hover, .iv-nav a.active {
+    background: rgba(37, 99, 235, .25);
+    color: #fff;
+}
+.iv-sidebar-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    font-size: 13px;
+    color: #94a3b8;
+}
+.iv-sidebar-footer a { color: #f87171; text-decoration: none; font-weight: 700; }
+
+/* ---------- Main area ---------- */
+.iv-main { flex: 1; padding: 28px 32px; max-width: 1200px; }
+.iv-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+}
+.iv-topbar h1 { font-size: 22px; margin: 0; font-weight: 900; }
+.iv-topbar p { margin: 4px 0 0; color: var(--iv-muted); font-size: 13.5px; }
+.iv-whoami { font-size: 13px; color: var(--iv-muted); text-align: right; }
+.iv-whoami b { color: var(--iv-text); }
+
+/* ---------- Card ---------- */
+.iv-card {
+    background: var(--iv-card);
+    border: 1px solid var(--iv-border);
+    border-radius: var(--iv-radius);
+    padding: 22px 24px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 14px rgba(15,23,42,.04);
+}
+.iv-card h2 { font-size: 16px; margin: 0 0 14px; font-weight: 800; }
+.iv-card h3 { font-size: 14px; margin: 18px 0 10px; font-weight: 800; color: var(--iv-muted); text-transform: uppercase; letter-spacing: .4px; }
+
+/* ---------- Alerts ---------- */
+.iv-alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
+    font-weight: 600;
+}
+.iv-alert-error { background: #fef2f2; color: var(--iv-danger); border: 1px solid #fecaca; }
+.iv-alert-success { background: #f0fdf4; color: var(--iv-success); border: 1px solid #bbf7d0; }
+
+/* ---------- Forms ---------- */
+.iv-form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.iv-field { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+.iv-field label { font-size: 12.5px; font-weight: 700; color: var(--iv-muted); margin-bottom: 6px; }
+.iv-field input, .iv-field select, .iv-field textarea {
+    background: #f8fafc;
+    border: 1px solid var(--iv-border);
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--iv-text);
+    font-family: inherit;
+    outline: none;
+    transition: .15s;
+}
+.iv-field input:focus, .iv-field select:focus, .iv-field textarea:focus {
+    background: #fff;
+    border-color: var(--iv-primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+.iv-field textarea { resize: vertical; min-height: 70px; }
+.iv-hint { font-size: 12px; color: var(--iv-muted); margin-top: 4px; }
+
+.iv-btn {
+    display: inline-block;
+    border: 0;
+    background: linear-gradient(135deg, var(--iv-primary), #3b82f6);
+    color: #fff;
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    transition: .15s;
+}
+.iv-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(37,99,235,.25); color: #fff; }
+.iv-btn-ghost { background: #fff; border: 1px solid var(--iv-border); color: var(--iv-text); }
+.iv-btn-ghost:hover { border-color: var(--iv-primary); color: var(--iv-primary); box-shadow: none; }
+.iv-btn-sm { padding: 7px 14px; font-size: 12.5px; border-radius: 8px; }
+.iv-btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+/* ---------- Table ---------- */
+.iv-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.iv-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #f8fafc;
+    color: var(--iv-muted);
+    font-weight: 700;
+    border-bottom: 1px solid var(--iv-border);
+    white-space: nowrap;
+}
+.iv-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+.iv-table tr:hover td { background: #f8fafc; }
+.iv-date-heading td {
+    background: #eff6ff;
+    font-weight: 800;
+    color: var(--iv-primary-dark);
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+/* ---------- Badges ---------- */
+.iv-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 800;
+}
+.iv-badge-blue { background: #dbeafe; color: #1e40af; }
+.iv-badge-teal { background: #ccfbf1; color: #0f766e; }
+.iv-badge-gray { background: #f1f5f9; color: var(--iv-muted); }
+.iv-badge-green { background: #dcfce7; color: #15803d; }
+.iv-badge-red { background: #fee2e2; color: #b91c1c; }
+.iv-badge-amber { background: #fef3c7; color: #92400e; }
+
+/* ---------- Chips (participants) ---------- */
+.iv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    padding: 3px 10px 3px 4px;
+    font-size: 12px;
+    margin: 2px 3px 2px 0;
+}
+.iv-chip .iv-avatar {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--iv-primary);
+    color: #fff;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+}
+.iv-chip.lead { background: #fef3c7; }
+.iv-chip.lead .iv-avatar { background: var(--iv-warning); }
+
+/* ---------- Criteria builder (Barem) ---------- */
+.iv-crit-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.iv-crit-table th { text-align: left; font-size: 12px; color: var(--iv-muted); padding: 6px 8px; }
+.iv-crit-table td { padding: 6px 8px; }
+.iv-crit-table input { width: 100%; }
+.iv-crit-remove {
+    background: #fee2e2; color: var(--iv-danger); border: none; border-radius: 8px;
+    width: 30px; height: 30px; cursor: pointer; font-weight: 800;
+}
+#weightSumBox { font-size: 13px; font-weight: 700; margin-top: 10px; }
+#weightSumBox.ok { color: var(--iv-success); }
+#weightSumBox.warn { color: var(--iv-warning); }
+
+/* ---------- Score grid (Evaluation) ---------- */
+.iv-score-item {
+    border: 1px solid var(--iv-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+.iv-score-item .iv-score-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.iv-score-item .iv-score-head b { font-size: 14px; }
+.iv-score-item .iv-score-head span { font-size: 12px; color: var(--iv-muted); }
+.iv-score-input { width: 100px; }
+
+/* ---------- Misc ---------- */
+.iv-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--iv-muted);
+    font-size: 14px;
+}
+.iv-grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: start; }
+@media (max-width: 900px) {
+    .iv-sidebar { display: none; }
+    .iv-grid-2 { grid-template-columns: 1fr; }
+}
+.iv-muted { color: var(--iv-muted); }
+.iv-small { font-size: 12px; }
+
+/* ---------- Employee profile documents ---------- */
+.iv-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+.iv-section-head h2 { margin-bottom: 4px; }
+.iv-table-wrap { width: 100%; overflow-x: auto; }
+.iv-progress-cell { min-width: 180px; }
+.iv-progress {
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    background: #e2e8f0;
+    border-radius: 999px;
+    margin-bottom: 5px;
+}
+.iv-progress span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--iv-teal), #2dd4bf);
+}
+.iv-progress-lg { height: 10px; margin-top: 10px; margin-bottom: 0; }
+.iv-profile-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    background:
+        radial-gradient(circle at 90% 20%, rgba(45,212,191,.14), transparent 34%),
+        linear-gradient(135deg, #fff, #f8fafc);
+}
+.iv-profile-hero h2 { margin: 8px 0 4px; font-size: 21px; }
+.iv-profile-hero p { margin: 0; }
+.iv-profile-score { width: min(330px, 42%); text-align: right; }
+.iv-profile-score strong { display: block; color: var(--iv-teal); font-size: 30px; line-height: 1; }
+.iv-profile-score > span { display: block; margin-top: 6px; color: var(--iv-muted); font-size: 12px; }
+.iv-back-link { color: var(--iv-primary); font-size: 12px; font-weight: 800; text-decoration: none; }
+.iv-required {
+    display: inline-block;
+    margin-left: 7px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #fff1f2;
+    color: #be123c;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .35px;
+}
+.iv-check-field { justify-content: flex-end; min-width: 150px; }
+.iv-check-field label { color: var(--iv-text); font-size: 13.5px; cursor: pointer; }
+.iv-check-field input { width: auto; margin-right: 6px; box-shadow: none; }
+.iv-file-link { color: var(--iv-primary-dark); font-size: 12.5px; font-weight: 700; text-decoration: none; }
+.iv-file-link:hover { text-decoration: underline; }
+.iv-review-cell { min-width: 245px; }
+.iv-review-form textarea {
+    width: 100%;
+    min-height: 62px;
+    resize: vertical;
+    border: 1px solid var(--iv-border);
+    border-radius: 9px;
+    padding: 8px 10px;
+    font: inherit;
+    font-size: 12.5px;
+    margin-bottom: 7px;
+}
+.iv-review-form textarea:focus { outline: none; border-color: var(--iv-primary); }
+.iv-action-row { display: flex; gap: 7px; }
+
+.iv-document-list { display: grid; gap: 14px; }
+.iv-document-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--iv-border);
+    border-left: 5px solid #94a3b8;
+    border-radius: 12px;
+    padding: 18px 20px;
+    background: #fff;
+}
+.iv-document-card.status-Submitted { border-left-color: var(--iv-primary); }
+.iv-document-card.status-Approved { border-left-color: var(--iv-success); background: #fcfffd; }
+.iv-document-card.status-Rejected { border-left-color: var(--iv-danger); background: #fffdfd; }
+.iv-document-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.iv-document-head h3 {
+    display: inline;
+    margin: 0;
+    color: var(--iv-text);
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.iv-document-card > p { margin: 9px 0; font-size: 13px; }
+.iv-document-meta { display: flex; flex-wrap: wrap; gap: 18px; margin: 12px 0; font-size: 12px; color: var(--iv-muted); }
+.iv-upload-form { margin-top: 16px; padding-top: 15px; border-top: 1px dashed var(--iv-border); }
+.iv-upload-form .iv-form-row { margin-bottom: 10px; }
+.iv-upload-form input[type="file"] { padding: 8px; }
+.iv-rejection-note, .iv-approval-note {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: 12.5px;
+}
+.iv-rejection-note { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
+.iv-approval-note { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+
+.iv-timeline { position: relative; margin-left: 5px; }
+.iv-timeline::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: 5px;
+    width: 2px;
+    background: var(--iv-border);
+}
+.iv-timeline-item { position: relative; padding: 0 0 18px 25px; font-size: 13px; }
+.iv-timeline-item:last-child { padding-bottom: 0; }
+.iv-timeline-dot {
+    position: absolute;
+    z-index: 1;
+    top: 4px;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    border: 3px solid #bfdbfe;
+    border-radius: 50%;
+    background: var(--iv-primary);
+}
+
+@media (max-width: 700px) {
+    .iv-main { padding: 20px 14px; }
+    .iv-topbar, .iv-profile-hero { align-items: flex-start; flex-direction: column; }
+    .iv-whoami { text-align: left; }
+    .iv-profile-score { width: 100%; text-align: left; }
+    .iv-document-head { flex-direction: column; }
+}
