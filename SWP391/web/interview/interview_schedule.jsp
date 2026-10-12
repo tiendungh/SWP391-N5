@@ -107,15 +107,27 @@
                     <div class="iv-form-row">
                         <div class="iv-field">
                             <label>Ngày phỏng vấn *</label>
-                            <input type="date" name="interviewDate" required ${empty baremsForJob ? 'disabled' : ''}/>
+                            <input type="date"
+                                   name="interviewDate"
+                                   id="interviewDate"
+                                   required
+                                   ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
                         <div class="iv-field">
                             <label>Giờ bắt đầu *</label>
-                            <input type="time" name="startTime" required ${empty baremsForJob ? 'disabled' : ''}/>
+                            <input type="time"
+                                   name="startTime"
+                                   id="startTime"
+                                   required
+                                   ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
                         <div class="iv-field">
-                            <label>Giờ kết thúc</label>
-                            <input type="time" name="endTime" ${empty baremsForJob ? 'disabled' : ''}/>
+                            <label>Giờ kết thúc *</label>
+                            <input type="time"
+                                   name="endTime"
+                                   id="endTime"
+                                   required
+                                   ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
                     </div>
 
@@ -194,7 +206,7 @@
                                     <div style="margin-top:8px;">
                                         <c:forEach var="p" items="${iv.participants}">
                                             <span class="iv-chip ${p.lead ? 'lead' : ''}"><span class="iv-avatar">${p.fullName.substring(0,1)}</span>${p.fullName}</span>
-                                        </c:forEach>
+                                            </c:forEach>
                                     </div>
                                     <a class="iv-btn iv-btn-sm iv-btn-ghost" style="margin-top:8px;"
                                        href="${pageContext.request.contextPath}/interview-evaluation?interviewId=${iv.interviewId}">Chấm điểm</a>
@@ -207,5 +219,49 @@
         </div>
     </c:otherwise>
 </c:choose>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dateInput = document.getElementById("interviewDate");
+        const startInput = document.getElementById("startTime");
+        const endInput = document.getElementById("endTime");
 
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+
+        const today = year + "-" + month + "-" + day;
+
+        dateInput.min = today;
+
+        function validateTime() {
+            if (!startInput.value || !endInput.value) {
+                endInput.setCustomValidity("");
+                return;
+            }
+
+            if (endInput.value <= startInput.value) {
+                endInput.setCustomValidity(
+                        "Giờ kết thúc phải lớn hơn giờ bắt đầu."
+                        );
+            } else {
+                endInput.setCustomValidity("");
+            }
+        }
+
+        startInput.addEventListener("change", validateTime);
+        endInput.addEventListener("change", validateTime);
+
+        dateInput.addEventListener("change", function () {
+            if (dateInput.value < today) {
+                dateInput.setCustomValidity(
+                        "Ngày phỏng vấn không được ở trong quá khứ."
+                        );
+            } else {
+                dateInput.setCustomValidity("");
+            }
+        });
+    });
+</script>
 <jsp:include page="staff_footer.jsp"/>

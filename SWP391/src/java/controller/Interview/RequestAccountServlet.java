@@ -13,8 +13,8 @@ import tool.InputValidator;
 import tool.SessionUtil;
 
 /**
- * Manager-only: ask Admin to create an Employee account for a given email.
- * The Manager cannot create the account themselves - this just files a
+ * HR Staff-only: ask Admin to create an Employee account for a given email.
+ * HR Staff cannot create the account themselves - this just files a
  * request that shows up in Admin's queue (/admin/account-requests).
  * URL: /request-account
  */
@@ -24,14 +24,14 @@ public class RequestAccountServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!SessionUtil.requireManagerAccess(request, response)) return;
+        if (!SessionUtil.requireHrStaffAccess(request, response)) return;
         renderPage(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!SessionUtil.requireManagerAccess(request, response)) return;
+        if (!SessionUtil.requireHrStaffAccess(request, response)) return;
 
         request.setCharacterEncoding("UTF-8");
 

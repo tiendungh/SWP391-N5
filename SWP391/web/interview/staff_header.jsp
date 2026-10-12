@@ -14,6 +14,10 @@
                 <div class="iv-logo">JOB<span>BOARD</span> · HR</div>
                 <nav class="iv-nav">
                     <c:if test="${sessionScope.roleName == 'HR Staff' || sessionScope.roleName == 'Manager'}">
+                        <a href="${pageContext.request.contextPath}/job-post"
+                           class="${currentNav == 'jobpost' ? 'active' : ''}">📝 Tạo JD</a>
+                        <a href="${pageContext.request.contextPath}/screening"
+                           class="${currentNav == 'screening' ? 'active' : ''}">🔎 Sơ lọc hồ sơ</a>
                         <a href="${pageContext.request.contextPath}/interview-schedule"
                            class="${currentNav == 'schedule' ? 'active' : ''}">📅 Lên lịch phỏng vấn</a>
                         <a href="${pageContext.request.contextPath}/interview-calendar"
@@ -22,10 +26,16 @@
                            class="${currentNav == 'barem' ? 'active' : ''}">📋 Barem đánh giá</a>
                         <a href="${pageContext.request.contextPath}/employee-profiles"
                            class="${currentNav == 'employeeProfiles' ? 'active' : ''}">🗂️ Hồ sơ nhân viên</a>
-                    </c:if>
-                    <c:if test="${sessionScope.roleName == 'Manager'}">
-                        <a href="${pageContext.request.contextPath}/request-account"
-                           class="${currentNav == 'requestAccount' ? 'active' : ''}">📨 Yêu cầu tạo tài khoản</a>
+                        <%-- THÊM MỚI: Taskbar Tổ chức phòng ban & Gán nhân sự dành cho Manager --%>
+                        <c:if test="${sessionScope.roleName == 'Manager' || sessionScope.userRole == 'Manager' || sessionScope.userRole == 'Admin'}">
+                            <a href="${pageContext.request.contextPath}/department-manage"
+                               class="${currentNav == 'deptOrg' ? 'active' : ''}">🏛️ Tổ chức phòng ban</a>
+                        </c:if>
+                        <%-- Yêu cầu tạo tài khoản: chỉ dành cho HR Staff - Manager không được tự yêu cầu tạo tài khoản --%>
+                        <c:if test="${sessionScope.roleName == 'HR Staff'}">
+                            <a href="${pageContext.request.contextPath}/request-account"
+                               class="${currentNav == 'requestAccount' ? 'active' : ''}">📨 Yêu cầu tạo tài khoản</a>
+                        </c:if>
                     </c:if>
                     <a href="${pageContext.request.contextPath}/my-profile-documents"
                        class="${currentNav == 'myProfile' ? 'active' : ''}">👤 Hồ sơ của tôi</a>

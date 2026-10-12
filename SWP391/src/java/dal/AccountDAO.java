@@ -267,7 +267,20 @@ public class AccountDAO extends DBContext {
     public int deleteEmployeeAccount(int employeeId) {
         if (c == null) return -1;
 
-        String[] blockingChecks = {
+        String candidateIdSql = "SELECT CandidateID FROM Employee WHERE EmployeeID = ?";
+        int candidateIdForChecks;
+        try (PreparedStatement ps = c.prepareStatement(candidateIdSql)) {
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return -1; // no such employee
+                candidateIdForChecks = rs.getInt("CandidateID");
+            }
+        } catch (Exception e) {
+            System.err.println("AccountDAO.deleteEmployeeAccount lookup error: " + e.getMessage());
+            return -1;
+        }
+
+        String[] employeeBlockingChecks = {
             "SELECT 1 FROM Interview WHERE CreatedBy = ?",
             "SELECT 1 FROM InterviewParticipant WHERE EmployeeID = ?",
             "SELECT 1 FROM InterviewEvaluation WHERE InterviewerID = ?",
@@ -279,9 +292,16 @@ public class AccountDAO extends DBContext {
             // Note: AccountRequest.ReviewedByAdminId references Admin, not Employee - not checked here.
             "SELECT 1 FROM AccountRequest WHERE RequestedBy = ?"
         };
+        // Apply.CandidateID has no ON DELETE CASCADE/SET NULL, so a leftover
+        // job application under this same Candidate row would otherwise crash
+        // the DELETE FROM Candidate step below instead of failing cleanly.
+        // (CV and SavedJob both cascade on Candidate delete, so no check needed there.)
+        String[] candidateBlockingChecks = {
+            "SELECT 1 FROM Apply WHERE CandidateID = ?"
+        };
 
         try {
-            for (String checkSql : blockingChecks) {
+            for (String checkSql : employeeBlockingChecks) {
                 try (PreparedStatement ps = c.prepareStatement(checkSql)) {
                     for (int i = 1; i <= ps.getParameterMetaData().getParameterCount(); i++) {
                         ps.setInt(i, employeeId);
@@ -291,11 +311,18 @@ public class AccountDAO extends DBContext {
                     }
                 }
             }
+            for (String checkSql : candidateBlockingChecks) {
+                try (PreparedStatement ps = c.prepareStatement(checkSql)) {
+                    ps.setInt(1, candidateIdForChecks);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) return -2; // has related history - block delete
+                    }
+                }
+            }
         } catch (Exception e) {
             System.err.println("AccountDAO.deleteEmployeeAccount check warning: " + e.getMessage());
         }
 
-        String candidateIdSql = "SELECT CandidateID FROM Employee WHERE EmployeeID = ?";
         String clearFulfilledBySql = "UPDATE AccountRequest SET FulfilledEmployeeID = NULL WHERE FulfilledEmployeeID = ?";
         String deleteEmployeeSql = "DELETE FROM Employee WHERE EmployeeID = ?";
         String deleteCandidateSql = "DELETE FROM Candidate WHERE CandidateID = ?";

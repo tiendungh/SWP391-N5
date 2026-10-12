@@ -12,11 +12,11 @@ import java.util.List;
 import model.AccountRequestModel;
 
 /**
- * Manager -> Admin account creation requests (dbo.AccountRequest). A Manager
+ * HR Staff -> Admin account creation requests (dbo.AccountRequest). HR Staff
  * fills in an email (and optionally the rest of the profile) and submits it;
  * Admin reviews the queue and either creates the account from a request
  * (marking it Approved + linking the new EmployeeID) or rejects it with a
- * note the Manager can see.
+ * note the requester can see.
  */
 public class AccountRequestDAO extends DBContext {
 

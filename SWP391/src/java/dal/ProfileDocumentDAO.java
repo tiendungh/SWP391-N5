@@ -45,7 +45,8 @@ public class ProfileDocumentDAO extends DBContext {
                 + "JOIN Candidate candidate ON e.CandidateID = candidate.CandidateID "
                 + "JOIN Roles role ON e.RoleID = role.RoleID "
                 + "LEFT JOIN EmployeeProfileDocument d ON e.EmployeeID = d.EmployeeID "
-                + "WHERE e.IsActive = 1 AND role.RoleName = 'Employee' "
+                + "WHERE e.IsActive = 1 "
+                + "AND role.RoleName = 'Employee' "
                 + "GROUP BY e.EmployeeID, candidate.CandidateName, candidate.Email, role.RoleName "
                 + "ORDER BY candidate.CandidateName";
 

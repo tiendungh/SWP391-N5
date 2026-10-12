@@ -3,7 +3,9 @@ package dal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.StaffModel;
 
 /**
@@ -62,5 +64,59 @@ public class StaffDAO extends DBContext {
         s.setEmail(rs.getString("Email"));
         s.setPhoneNumber(rs.getString("PhoneNumber"));
         return s;
+    }
+
+    // ============================================================
+    // THÊM MỚI: CÁC PHƯƠNG THỨC TRUY VẤN PHÒNG BAN & LỊCH SỬ CÔNG TÁC
+    // ============================================================
+
+    /** Lấy thông tin phòng ban, vị trí, mã nhân viên và ngày vào làm hiện tại */
+    public Map<String, Object> getEmployeeWorkInfo(int employeeId) {
+        Map<String, Object> map = new HashMap<>();
+        if (c == null) return map;
+
+        String sql = "SELECT e.Department, e.Position, e.EmployeeCode, e.HireDate "
+                   + "FROM dbo.Employee e WHERE e.EmployeeID = ?";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    map.put("department", rs.getNString("Department"));
+                    map.put("position", rs.getNString("Position"));
+                    map.put("employeeCode", rs.getString("EmployeeCode"));
+                    map.put("hireDate", rs.getDate("HireDate"));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("StaffDAO.getEmployeeWorkInfo error: " + e.getMessage());
+        }
+        return map;
+    }
+
+    /** Lấy danh sách lịch sử điều chuyển vị trí & phòng ban từ EmployeePositionHistory */
+    public List<Map<String, Object>> getPositionHistory(int employeeId) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (c == null) return list;
+
+        String sql = "SELECT h.Position, h.Department, h.StartDate, h.EndDate, h.Note "
+                   + "FROM dbo.EmployeePositionHistory h "
+                   + "WHERE h.EmployeeID = ? ORDER BY h.StartDate DESC";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("position", rs.getNString("Position"));
+                    map.put("department", rs.getNString("Department"));
+                    map.put("startDate", rs.getDate("StartDate"));
+                    map.put("endDate", rs.getDate("EndDate"));
+                    map.put("note", rs.getNString("Note"));
+                    list.add(map);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("StaffDAO.getPositionHistory error: " + e.getMessage());
+        }
+        return list;
     }
 }

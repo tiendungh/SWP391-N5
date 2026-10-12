@@ -30,39 +30,6 @@ public class SessionUtil {
         return "HR Staff".equals(roleName) || "Manager".equals(roleName);
     }
 
-    public static boolean isManager(HttpServletRequest request) {
-        return "Manager".equals(getRoleName(request));
-    }
-
-    /**
-     * Returns true and lets the caller continue if the user is a logged-in
-     * Manager. Otherwise redirects to login (or shows 403) and returns false -
-     * the calling servlet must stop processing in that case. Used for the
-     * "request account creation" screen, which is Manager-only (HR Staff do
-     * not send these requests).
-     */
-    public static boolean requireManagerAccess(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        Integer staffId = getStaffId(request);
-        if (staffId == null) {
-            HttpSession session = request.getSession(false);
-            if (session == null || session.getAttribute("email") == null) {
-                response.sendRedirect(request.getContextPath() + "/login");
-            } else {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                        "Chức năng này chỉ dành cho nhân viên.");
-            }
-            return false;
-        }
-
-        if (!isManager(request)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                    "Chỉ Manager mới được truy cập chức năng này.");
-            return false;
-        }
-        return true;
-    }
-
     public static boolean requireEmployeeAccess(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession(false);
@@ -105,7 +72,12 @@ public class SessionUtil {
         }
         return true;
     }
-    
+
+    // ============================================================
+    // Admin session (separate from the employee session above -
+    // see AdminLoginServlet, which sets adminId/adminUsername/adminRoles)
+    // ============================================================
+
     public static Integer getAdminId(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) return null;
@@ -118,10 +90,79 @@ public class SessionUtil {
         return session == null ? null : (String) session.getAttribute("adminUsername");
     }
 
+    /**
+     * Returns true and lets the caller continue if an Admin is logged in.
+     * Otherwise redirects to /admin/login and returns false - the calling
+     * servlet must stop processing in that case.
+     */
     public static boolean requireAdminAccess(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         if (getAdminId(request) == null) {
             response.sendRedirect(request.getContextPath() + "/admin/login");
+            return false;
+        }
+        return true;
+    }
+
+    /** True if the logged-in employee's role is Manager. */
+    public static boolean isManager(HttpServletRequest request) {
+        return "Manager".equals(getRoleName(request));
+    }
+
+    /**
+     * Returns true and lets the caller continue if the user is a logged-in
+     * Manager. Otherwise redirects to login (or shows 403) and returns false.
+     */
+    public static boolean requireManagerAccess(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        Integer staffId = getStaffId(request);
+        if (staffId == null) {
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("email") == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Chức năng này chỉ dành cho nhân viên.");
+            }
+            return false;
+        }
+
+        if (!isManager(request)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                    "Chỉ Manager mới được truy cập chức năng này.");
+            return false;
+        }
+        return true;
+    }
+
+    /** True if the logged-in employee's role is HR Staff. */
+    public static boolean isHrStaff(HttpServletRequest request) {
+        return "HR Staff".equals(getRoleName(request));
+    }
+
+    /**
+     * Returns true and lets the caller continue if the user is a logged-in
+     * HR Staff. Otherwise redirects to login (or shows 403) and returns false.
+     */
+    public static boolean requireHrStaffAccess(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        Integer staffId = getStaffId(request);
+        if (staffId == null) {
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("email") == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Chức năng này chỉ dành cho nhân viên.");
+            }
+            return false;
+        }
+
+        if (!isHrStaff(request)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                    "Chỉ HR Staff mới được truy cập chức năng này.");
             return false;
         }
         return true;

@@ -90,7 +90,34 @@ public class MyProfileDocumentsServlet extends HttpServlet {
         request.setAttribute("documents", dao.getDocumentsByEmployee(employeeId));
         request.setAttribute("documentHistory", dao.getHistoryByEmployee(employeeId));
         dao.closeConnection();
+
+        // THÊM MỚI: Tải thông tin phòng ban, vị trí và lịch sử công tác của Employee
+        loadWorkDepartmentInfo(request, employeeId);
+
         request.getRequestDispatcher("/profile/my_profile_documents.jsp").forward(request, response);
+    }
+
+    // THÊM MỚI: Hàm đọc dữ liệu phòng ban từ database SWP391
+    // THÊM MỚI: Hàm đọc dữ liệu phòng ban từ database SWP391 qua DAO
+    private void loadWorkDepartmentInfo(HttpServletRequest request, int employeeId) {
+        try {
+            dal.StaffDAO staffDAO = new dal.StaffDAO();
+
+            // 1. Lấy thông tin phòng ban, chức vụ, mã nhân viên
+            java.util.Map<String, Object> workInfo = staffDAO.getEmployeeWorkInfo(employeeId);
+            if (workInfo != null && !workInfo.isEmpty()) {
+                request.setAttribute("empDepartment", workInfo.get("department"));
+                request.setAttribute("empPosition", workInfo.get("position"));
+                request.setAttribute("empCode", workInfo.get("employeeCode"));
+                request.setAttribute("empHireDate", workInfo.get("hireDate"));
+            }
+
+            // 2. Lấy danh sách lịch sử công tác
+            java.util.List<java.util.Map<String, Object>> posHistoryList = staffDAO.getPositionHistory(employeeId);
+            request.setAttribute("posHistoryList", posHistoryList);
+        } catch (Exception e) {
+            System.err.println("MyProfileDocumentsServlet.loadWorkDepartmentInfo error: " + e.getMessage());
+        }
     }
 
     private String safeFileName(String submittedName) {

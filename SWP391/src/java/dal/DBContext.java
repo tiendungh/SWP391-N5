@@ -25,5 +25,5 @@ public class DBContext {
         } catch (Exception e) {
             System.err.println("Close connection failed: " + e.getMessage());
         }
-    }   
+    }
 }

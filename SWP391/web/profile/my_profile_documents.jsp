@@ -30,6 +30,92 @@
     </div>
 </c:if>
 
+<%-- THÊM MỚI: Khối hiển thị thông tin Phòng ban & Vị trí công tác của nhân viên --%>
+<div class="iv-card">
+    <div class="iv-section-head">
+        <div>
+            <h2>Thông tin công tác & Phòng ban</h2>
+            <span class="iv-small iv-muted">Phòng ban và chức danh chính thức do cấp Quản lý phân công.</span>
+        </div>
+    </div>
+    <div class="iv-table-wrap">
+        <table class="iv-table">
+            <thead>
+                <tr>
+                    <th>Mã nhân viên</th>
+                    <th>Phòng ban</th>
+                    <th>Chức danh / Vị trí</th>
+                    <th>Ngày vào làm</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b><c:out value="${not empty empCode ? empCode : '—'}"/></b></td>
+                    <td>
+                        <span class="iv-badge iv-badge-blue">
+                            <c:out value="${not empty empDepartment ? empDepartment : 'Chưa phân công'}"/>
+                        </span>
+                    </td>
+                    <td><b><c:out value="${not empty empPosition ? empPosition : 'Chưa thiết lập'}"/></b></td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${not empty empHireDate}">
+                                <fmt:formatDate value="${empHireDate}" pattern="dd/MM/yyyy"/>
+                            </c:when>
+                            <c:otherwise>—</c:otherwise>
+                        </c:choose>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <%-- Bảng lịch sử điều chuyển vị trí & phòng ban --%>
+    <c:if test="${not empty posHistoryList}">
+        <div style="margin-top: 24px;">
+            <div class="iv-section-head">
+                <div>
+                    <h3 style="font-size: 1.05rem;">Lịch sử thay đổi vị trí công tác</h3>
+                </div>
+            </div>
+            <div class="iv-table-wrap">
+                <table class="iv-table">
+                    <thead>
+                        <tr>
+                            <th>Phòng ban</th>
+                            <th>Vị trí</th>
+                            <th>Thời gian bắt đầu</th>
+                            <th>Thời gian kết thúc</th>
+                            <th>Ghi chú điều chuyển</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="h" items="${posHistoryList}">
+                            <tr>
+                                <td><b><c:out value="${h.department}"/></b></td>
+                                <td><c:out value="${h.position}"/></td>
+                                <td><fmt:formatDate value="${h.startDate}" pattern="dd/MM/yyyy"/></td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${not empty h.endDate}">
+                                            <fmt:formatDate value="${h.endDate}" pattern="dd/MM/yyyy"/>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="iv-badge iv-badge-green">Hiện tại</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td><c:out value="${not empty h.note ? h.note : '—'}"/></td>
+                            </tr>
+                        </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </c:if>
+</div>
+<%-- KẾT THÚC KHỐI BỔ SUNG --%>
+
 <div class="iv-card">
     <h2>Danh sách cần hoàn thành (${documents.size()})</h2>
     <c:choose>

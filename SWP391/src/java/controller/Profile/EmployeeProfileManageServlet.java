@@ -15,9 +15,23 @@ import tool.SessionUtil;
 public class EmployeeProfileManageServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+   protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (!SessionUtil.requireStaffAccess(request, response)) return;
+
+        // THÊM MỚI: Nạp danh sách tên phòng ban vào request attribute cho dropdown
+        dal.DepartmentDAO deptDAO = new dal.DepartmentDAO();
+        java.util.List<model.DepartmentModel> allDepts = deptDAO.getAllDepartments();
+        java.util.List<String> departmentNames = new java.util.ArrayList<>();
+        if (allDepts != null) {
+            for (model.DepartmentModel d : allDepts) {
+                if (d.getDepartmentName() != null && !d.getDepartmentName().trim().isEmpty()) {
+                    departmentNames.add(d.getDepartmentName());
+                }
+            }
+        }
+        request.setAttribute("departmentList", departmentNames);
+
         renderPage(request, response, parsePositiveInt(request.getParameter("employeeId")));
     }
 
@@ -36,8 +50,43 @@ public class EmployeeProfileManageServlet extends HttpServlet {
             assignDocument(request, response, employeeId);
         } else if ("review".equals(action)) {
             reviewDocument(request, response, employeeId);
+        } else if ("assignDepartment".equals(action)) {
+            assignDepartment(request, response, employeeId);
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thao tác không hợp lệ.");
+        }
+    }
+
+    // THÊM MỚI: Hàm xử lý gán phòng ban cho nhân sự
+    private void assignDepartment(HttpServletRequest request, HttpServletResponse response, Integer employeeId)
+            throws IOException {
+        if (employeeId == null || employeeId <= 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Nhân viên không hợp lệ.");
+            return;
+        }
+
+        String department = clean(request.getParameter("department"));
+        String newDepartment = clean(request.getParameter("newDepartment"));
+        String position = clean(request.getParameter("position"));
+        String note = clean(request.getParameter("note"));
+
+        // Ưu tiên lấy tên phòng ban mới nếu người dùng nhập tay
+        if (newDepartment != null && !newDepartment.isEmpty()) {
+            department = newDepartment;
+        }
+
+        if (department == null || department.isEmpty() || position == null || position.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/employee-profiles?error=Vui lòng nhập đầy đủ phòng ban và vị trí");
+            return;
+        }
+
+        dal.DepartmentDAO deptDAO = new dal.DepartmentDAO();
+        boolean ok = deptDAO.assignEmployeeToDepartment(employeeId, department, position, note);
+
+        if (ok) {
+            response.sendRedirect(request.getContextPath() + "/employee-profiles?deptAssigned=1");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/employee-profiles?error=Lỗi khi cập nhật phòng ban");
         }
     }
 

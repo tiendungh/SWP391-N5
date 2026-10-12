@@ -114,6 +114,22 @@ BEGIN
 END;
 GO
 
+IF OBJECT_ID(N'dbo.Department', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Department (
+        DepartmentID INT IDENTITY(1,1) PRIMARY KEY,
+        DepartmentName NVARCHAR(100) NOT NULL,
+        Description NVARCHAR(255) NULL,
+        ManagerID INT NULL,
+        CreatedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_Department_CreatedAt DEFAULT (SYSDATETIME()),
+        CONSTRAINT UQ_Department_DepartmentName UNIQUE (DepartmentName),
+        CONSTRAINT FK_Department_Manager FOREIGN KEY (ManagerID)
+            REFERENCES dbo.Employee(EmployeeID) ON DELETE SET NULL
+    );
+END;
+GO
+
 IF OBJECT_ID(N'dbo.EmployeePositionHistory', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.EmployeePositionHistory (
@@ -566,6 +582,8 @@ GO
    INDEXES
    ============================================================ */
 
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Department_ManagerID' AND object_id = OBJECT_ID(N'dbo.Department'))
+    CREATE INDEX IX_Department_ManagerID ON dbo.Department(ManagerID);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Employee_Role' AND object_id = OBJECT_ID(N'dbo.Employee'))
     CREATE INDEX IX_Employee_Role ON dbo.Employee(RoleID);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Employee_Department' AND object_id = OBJECT_ID(N'dbo.Employee'))
@@ -725,6 +743,24 @@ BEGIN TRY
         FROM dbo.Employee employee
         JOIN dbo.Candidate candidate ON employee.CandidateID = candidate.CandidateID
         WHERE candidate.Email = N'an@gmail.com'
+    );
+
+    INSERT INTO dbo.Department (DepartmentName, Description, ManagerID)
+    SELECT source.DepartmentName, source.Description,
+           CASE source.DepartmentName
+               WHEN N'IT' THEN @ManagerID
+               WHEN N'Human Resources' THEN @HRID
+               ELSE NULL
+           END
+    FROM (VALUES
+        (N'IT', N'Phòng Công nghệ thông tin'),
+        (N'Human Resources', N'Phòng Nhân sự'),
+        (N'Marketing', N'Nghiên cứu thị trường, quảng cáo và phát triển người dùng'),
+        (N'Bán hàng (Sales)', N'Kinh doanh trực tiếp và quan hệ đối tác khách hàng'),
+        (N'Kế toán (Accounting)', N'Quản lý sổ sách kế toán, hóa đơn và chứng từ')
+    ) AS source(DepartmentName, Description)
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dbo.Department existing WHERE existing.DepartmentName = source.DepartmentName
     );
 
     INSERT INTO dbo.JobPost
@@ -993,6 +1029,7 @@ GO
 
 SELECT N'Database' AS Item, DB_NAME() AS Value
 UNION ALL SELECT N'Roles', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.Roles
+UNION ALL SELECT N'Departments', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.Department
 UNION ALL SELECT N'Candidates', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.Candidate
 UNION ALL SELECT N'Employees', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.Employee
 UNION ALL SELECT N'Job posts', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.JobPost

@@ -4,15 +4,12 @@
  */
 package controller;
 
-import dal.JobPostDAO;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
-import java.util.List;
-import model.JobPostModel;
 
 /**
  *
@@ -23,9 +20,7 @@ import model.JobPostModel;
 public class HomeServlet extends HttpServlet {
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods. Builds the company careers homepage: a handful of "featured"
-     * openings for the top slider, plus the full open-position list for the
-     * grid further down the page.
+     * methods.
      *
      * @param request servlet request
      * @param response servlet response
@@ -35,17 +30,6 @@ public class HomeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        JobPostDAO jobPostDAO = new JobPostDAO();
-        List<JobPostModel> openJobs = jobPostDAO.getOpenJobPosts();
-        jobPostDAO.closeConnection();
-
-        int featuredCount = Math.min(openJobs.size(), 4);
-
-        request.setAttribute("jobs", openJobs);
-        request.setAttribute("featuredJobs", openJobs.subList(0, featuredCount));
-        request.setAttribute("openJobCount", openJobs.size());
-
         request.getRequestDispatcher("/index.jsp").forward(request, response);
     }
 }

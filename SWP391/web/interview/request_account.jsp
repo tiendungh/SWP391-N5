@@ -8,7 +8,7 @@
 <div class="iv-topbar">
     <div>
         <h1>Yêu cầu Admin tạo tài khoản</h1>
-        <p>Bạn không thể tự tạo tài khoản nhân viên - hãy gửi yêu cầu kèm email, Admin sẽ xem xét và tạo tài khoản.</p>
+        <p>Chỉ HR Staff mới có thể gửi yêu cầu này. Bạn không thể tự tạo tài khoản nhân viên - hãy gửi yêu cầu kèm email, Admin sẽ xem xét và tạo tài khoản.</p>
     </div>
     <div class="iv-whoami">Xin chào, <b>${sessionScope.staffName}</b></div>
 </div>
