@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 50" width="240" height="50" fill="none">
+  <!-- Glassmorphic Brand Mark White -->
+  <g id="brand-mark-white">
+    <rect x="2" y="5" width="40" height="40" rx="12" fill="url(#whiteBrandGrad)" />
+    <rect x="2.5" y="5.5" width="39" height="39" rx="11.5" stroke="rgba(255, 255, 255, 0.45)" stroke-width="1" />
+    
+    <path d="M12 28L22 17L32 28" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M17 33L22 28L27 33" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="22" cy="14" r="2.5" fill="#ffffff" />
+  </g>
+  
+  <!-- Typography using Inter -->
+  <g id="brand-text-white">
+    <text x="52" y="27" font-family="'Inter', sans-serif" font-size="20" font-weight="900" letter-spacing="-0.5" fill="#ffffff">JOB</text>
+    <text x="96" y="27" font-family="'Inter', sans-serif" font-size="20" font-weight="900" letter-spacing="-0.5" fill="#5ba0d6">BOARD</text>
+    <text x="53" y="39" font-family="'Inter', sans-serif" font-size="8.5" font-weight="700" letter-spacing="1.5" fill="#cbd5e1">ENTERPRISE RECRUITMENT</text>
+  </g>
+
+  <defs>
+    <linearGradient id="whiteBrandGrad" x1="2" y1="5" x2="42" y2="45" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3F88C5" />
+      <stop offset="100%" stop-color="#2a6ea8" />
+    </linearGradient>
+  </defs>
+</svg>

@@ -12,7 +12,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <!-- Favicon -->
-        <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
+        <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/img/favicon.svg">
+        <link rel="shortcut icon" type="image/x-icon" href="${pageContext.request.contextPath}/img/favicon.svg">
+
+        <!-- Google Fonts: Inter -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
         <!-- CSS: Bootstrap first, then libraries, then main style -->
         <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -39,38 +45,27 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-lg-7">
-                        <span class="hero-kicker">CHÚNG TÔI ĐANG TUYỂN DỤNG</span>
-                        <h1 class="hero-title">Xây dựng sự nghiệp của bạn<br><span>cùng JOB BOARD</span></h1>
+                        <span class="hero-kicker"><i class="fa fa-shield"></i> HỆ THỐNG TUYỂN DỤNG DOANH NGHIỆP</span>
+                        <h1 class="hero-title">Xây dựng sự nghiệp vững bền<br><span>cùng JOB BOARD</span></h1>
                         <p class="hero-sub">
-                            JOB BOARD là nơi những con người chủ động, ham học hỏi cùng nhau xây dựng
-                            sản phẩm và phát triển sự nghiệp. Nếu bạn đang tìm một môi trường để thử
-                            thách bản thân và tiến xa hơn, chúng tôi đang chờ bạn.
+                            Môi trường chuyên nghiệp kết nối những chuyên viên xuất sắc với các cơ hội
+                            nghề nghiệp hàng đầu. Quy trình tuyển dụng minh bạch, đánh giá năng lực chuẩn mực
+                            và lộ trình thăng tiến rõ ràng.
                         </p>
                         <div class="hero-cta">
-                            <a href="#open-positions" class="boxed-btn3">Xem vị trí đang tuyển</a>
-                            <a href="#why-us" class="hero-link-btn">Tìm hiểu về chúng tôi <i class="fa fa-angle-right"></i></a>
+                            <a href="#open-positions" class="boxed-btn3 hero-primary-btn"><i class="fa fa-briefcase"></i> Khám phá vị trí đang tuyển</a>
+                            <a href="#why-us" class="hero-link-btn"><i class="fa fa-compass"></i> Giá trị doanh nghiệp <i class="fa fa-angle-right"></i></a>
                         </div>
                         <div class="hero-stats">
-                            <div><strong>${openJobCount}</strong><span>Vị trí đang mở</span></div>
-                            <div><strong>10+</strong><span>Năm phát triển</span></div>
-                            <div><strong>500+</strong><span>Nhân sự</span></div>
-                            <div><strong>95%</strong><span>Hài lòng nội bộ</span></div>
+                            <div class="stat-box"><strong>${openJobCount != null ? openJobCount : '25+'}</strong><span>Vị trí tuyển dụng</span></div>
+                            <div class="stat-box"><strong>10+</strong><span>Năm phát triển</span></div>
+                            <div class="stat-box"><strong>500+</strong><span>Nhân sự tài năng</span></div>
+                            <div class="stat-box"><strong>98%</strong><span>Hài lòng nội bộ</span></div>
                         </div>
                     </div>
                     <div class="col-lg-5">
-                        <div class="hero-visual">
-                            <div class="hero-float-card card-1">
-                                <i class="fa fa-briefcase"></i>
-                                <div><strong>Đang tuyển</strong><span>Backend Developer</span></div>
-                            </div>
-                            <div class="hero-float-card card-2">
-                                <i class="fa fa-users"></i>
-                                <div><strong>Đội ngũ</strong><span>Trẻ, năng động</span></div>
-                            </div>
-                            <div class="hero-float-card card-3">
-                                <i class="fa fa-line-chart"></i>
-                                <div><strong>Lộ trình rõ ràng</strong><span>Employee → Leader</span></div>
-                            </div>
+                        <div class="hero-visual-wrapper">
+                            <img src="${pageContext.request.contextPath}/img/hero-illustration.svg" alt="Recruitment Pipeline Illustration" class="hero-illustration-img">
                         </div>
                     </div>
                 </div>
@@ -211,29 +206,34 @@
         <section id="why-us" class="why-us-section">
             <div class="container">
                 <div class="section-heading">
-                    <span class="section-kicker">VÌ SAO CHỌN CHÚNG TÔI</span>
-                    <h2>Một môi trường để bạn phát triển</h2>
+                    <span class="section-kicker"><i class="fa fa-check-circle"></i> GIÁ TRỊ DOANH NGHIỆP</span>
+                    <h2>Môi trường chuyên nghiệp để bạn phát triển</h2>
+                    <p class="section-subtext">Chúng tôi cam kết xây dựng một môi trường làm việc chuẩn mực, minh bạch và tràn đầy cảm hứng sáng tạo.</p>
                 </div>
                 <div class="why-us-grid">
                     <div class="why-us-card">
                         <div class="why-us-icon"><i class="fa fa-line-chart"></i></div>
-                        <h4>Lộ trình thăng tiến rõ ràng</h4>
-                        <p>Từ Employee đến Leader, mỗi bước tiến của bạn đều được ghi nhận qua các đợt đánh giá năng lực định kỳ.</p>
+                        <h4>Lộ trình thăng tiến chuẩn mực</h4>
+                        <p>Từ Employee đến Leader, từng nấc thang nghề nghiệp được đồng hành và ghi nhận qua các kỳ đánh giá năng lực minh bạch.</p>
+                        <div class="card-accent-bar"></div>
                     </div>
                     <div class="why-us-card">
                         <div class="why-us-icon"><i class="fa fa-money"></i></div>
-                        <h4>Thu nhập &amp; phúc lợi cạnh tranh</h4>
-                        <p>Mức lương thỏa thuận theo năng lực, cùng các chế độ thưởng, bảo hiểm và nghỉ phép đầy đủ.</p>
+                        <h4>Thu nhập &amp; phúc lợi vượt trội</h4>
+                        <p>Mức thu nhập tương xứng năng lực, thưởng hiệu quả kinh doanh, gói bảo hiểm sức khỏe VIP và các chế độ đãi ngộ toàn diện.</p>
+                        <div class="card-accent-bar"></div>
                     </div>
                     <div class="why-us-card">
                         <div class="why-us-icon"><i class="fa fa-graduation-cap"></i></div>
                         <h4>Đào tạo &amp; phát triển liên tục</h4>
-                        <p>Chương trình onboarding bài bản và ngân sách học tập giúp bạn nâng cao chuyên môn mỗi năm.</p>
+                        <p>Ngân sách học tập định kỳ, khóa đào tạo nâng cao nghiệp vụ và cơ hội tham gia các dự án công nghệ quy mô lớn.</p>
+                        <div class="card-accent-bar"></div>
                     </div>
                     <div class="why-us-card">
                         <div class="why-us-icon"><i class="fa fa-heart"></i></div>
-                        <h4>Văn hóa cởi mở, gắn kết</h4>
-                        <p>Không gian làm việc thân thiện, nơi ý kiến của mỗi cá nhân đều được lắng nghe và tôn trọng.</p>
+                        <h4>Văn hóa gắn kết, chuyên nghiệp</h4>
+                        <p>Không gian làm việc năng động, tôn trọng sáng kiến cá nhân và xây dựng tinh thần đồng đội bền vững.</p>
+                        <div class="card-accent-bar"></div>
                     </div>
                 </div>
             </div>

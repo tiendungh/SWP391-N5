@@ -11,12 +11,20 @@
     </head>
     <body class="pb-body">
         <div class="pb-topnav">
-            <a class="pb-logo" href="${pageContext.request.contextPath}/jobs">JOB<span>BOARD</span></a>
-            <a class="pb-nav-link" href="${pageContext.request.contextPath}/login.jsp">Đăng nhập HR</a>
+            <a class="pb-logo" href="${pageContext.request.contextPath}/home">
+                <img src="${pageContext.request.contextPath}/img/logo-white.svg" alt="Job Board Logo">
+            </a>
+            <div class="pb-nav-links">
+                <a class="pb-nav-link" href="${pageContext.request.contextPath}/home">&larr; Về trang chủ</a>
+                <a class="pb-nav-btn" href="${pageContext.request.contextPath}/login.jsp">Cổng nội bộ HR</a>
+            </div>
         </div>
         <div class="pb-hero">
-            <h1>Cơ hội nghề nghiệp đang mở</h1>
-            <p>Khám phá các vị trí đang tuyển và ứng tuyển trực tiếp, không cần tạo tài khoản.</p>
+            <div class="pb-hero-content">
+                <span class="pb-hero-kicker">CƠ HỘI NGHỀ NGHIỆP</span>
+                <h1>Các vị trí tuyển dụng đang mở</h1>
+                <p>Khám phá môi trường làm việc chuẩn mực và ứng tuyển trực tiếp hồ sơ nhanh chóng.</p>
+            </div>
         </div>
 
         <div class="pb-wrap">

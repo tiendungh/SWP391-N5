@@ -10,8 +10,13 @@
     </head>
     <body class="pb-body">
         <div class="pb-topnav">
-            <a class="pb-logo" href="${pageContext.request.contextPath}/jobs">${initParam.companyName}</a>
-            <a class="pb-nav-link" href="${pageContext.request.contextPath}/jobs?id=${job.jobPostId}">← Quay lại tin tuyển dụng</a>
+            <a class="pb-logo" href="${pageContext.request.contextPath}/home">
+                <img src="${pageContext.request.contextPath}/img/logo-white.svg" alt="Job Board Logo">
+            </a>
+            <div class="pb-nav-links">
+                <a class="pb-nav-link" href="${pageContext.request.contextPath}/jobs?id=${job.jobPostId}">&larr; Chi tiết vị trí</a>
+                <a class="pb-nav-btn" href="${pageContext.request.contextPath}/jobs">Tất cả vị trí</a>
+            </div>
         </div>
         <div class="pb-hero">
             <h1>Ứng tuyển: ${job.title}</h1>

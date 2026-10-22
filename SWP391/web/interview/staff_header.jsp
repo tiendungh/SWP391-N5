@@ -6,12 +6,18 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>${empty pageTitle ? 'Nhân sự' : pageTitle} - HR Tools</title>
+        <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/img/favicon.svg">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/interview.css">
     </head>
     <body class="iv-body">
         <div class="iv-shell">
             <aside class="iv-sidebar">
-                <div class="iv-logo">JOB<span>BOARD</span> · HR</div>
+                <div class="iv-logo">
+                    <a href="${pageContext.request.contextPath}/home" style="text-decoration:none;">
+                        <img src="${pageContext.request.contextPath}/img/logo-white.svg" alt="Job Board Logo" class="iv-logo-img">
+                    </a>
+                    <span class="iv-logo-badge">HR PORTAL</span>
+                </div>
                 <nav class="iv-nav">
                     <c:if test="${sessionScope.roleName == 'HR Staff' || sessionScope.roleName == 'Manager'}">
                         <a href="${pageContext.request.contextPath}/job-post"

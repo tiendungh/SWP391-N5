@@ -9,8 +9,16 @@
                         <div class="col-xl-3 col-lg-2 col-7">
                             <div class="logo">
                                 <c:choose>
-                                    <c:when test="${sessionScope.role eq 'Employer'}"><a href="employerServices"></a></c:when>
-                                    <c:otherwise><a href="home"></a></c:otherwise>
+                                    <c:when test="${sessionScope.role eq 'Employer'}">
+                                        <a href="employerServices" class="brand-link">
+                                            <img src="${pageContext.request.contextPath}/img/logo.svg" alt="Job Board Logo" class="brand-logo-img">
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a href="home" class="brand-link">
+                                            <img src="${pageContext.request.contextPath}/img/logo.svg" alt="Job Board Logo" class="brand-logo-img">
+                                        </a>
+                                    </c:otherwise>
                                 </c:choose>
                             </div>
                         </div>
