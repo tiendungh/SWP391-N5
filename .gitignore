@@ -41,3 +41,5 @@ Desktop.ini
 
 # Libraries belong in lib/, not at the repository root
 /*.jar
+
+/context
