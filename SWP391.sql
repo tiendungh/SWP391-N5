@@ -137,6 +137,212 @@ END;
 GO
 
 /* ============================================================
+   CAREER PATH AND PROMOTION
+   ============================================================ */
+
+IF OBJECT_ID(N'dbo.JobLevel', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.JobLevel (
+        JobLevelID INT IDENTITY(1,1) PRIMARY KEY,
+        LevelName NVARCHAR(100) NOT NULL,
+        RankOrder INT NOT NULL,
+        Description NVARCHAR(500) NULL,
+        IsActive BIT NOT NULL
+            CONSTRAINT DF_JobLevel_IsActive DEFAULT (1),
+        CreatedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_JobLevel_CreatedAt DEFAULT (SYSDATETIME()),
+        CONSTRAINT UQ_JobLevel_LevelName UNIQUE (LevelName),
+        CONSTRAINT UQ_JobLevel_RankOrder UNIQUE (RankOrder),
+        CONSTRAINT CK_JobLevel_RankOrder CHECK (RankOrder >= 0)
+    );
+END;
+GO
+
+IF OBJECT_ID(N'dbo.Position', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.[Position] (
+        PositionID INT IDENTITY(1,1) PRIMARY KEY,
+        PositionName NVARCHAR(150) NOT NULL,
+        Department NVARCHAR(100) NOT NULL,
+        JobLevelID INT NOT NULL,
+        Description NVARCHAR(1000) NULL,
+        IsActive BIT NOT NULL
+            CONSTRAINT DF_Position_IsActive DEFAULT (1),
+        CreatedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_Position_CreatedAt DEFAULT (SYSDATETIME()),
+        CONSTRAINT UQ_Position_Name_Department UNIQUE (PositionName, Department),
+        CONSTRAINT FK_Position_JobLevel FOREIGN KEY (JobLevelID)
+            REFERENCES dbo.JobLevel(JobLevelID)
+    );
+END;
+GO
+
+IF OBJECT_ID(N'dbo.CareerPath', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.CareerPath (
+        CareerPathID INT IDENTITY(1,1) PRIMARY KEY,
+        FromPositionID INT NOT NULL,
+        ToPositionID INT NOT NULL,
+        MinMonthsInPosition INT NOT NULL
+            CONSTRAINT DF_CareerPath_MinMonths DEFAULT (0),
+        RequirementNote NVARCHAR(1000) NULL,
+        IsActive BIT NOT NULL
+            CONSTRAINT DF_CareerPath_IsActive DEFAULT (1),
+        CreatedBy INT NOT NULL,
+        CreatedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_CareerPath_CreatedAt DEFAULT (SYSDATETIME()),
+        CONSTRAINT UQ_CareerPath_From_To UNIQUE (FromPositionID, ToPositionID),
+        CONSTRAINT CK_CareerPath_DifferentPositions CHECK (FromPositionID <> ToPositionID),
+        CONSTRAINT CK_CareerPath_MinMonths CHECK (MinMonthsInPosition >= 0),
+        CONSTRAINT FK_CareerPath_FromPosition FOREIGN KEY (FromPositionID)
+            REFERENCES dbo.[Position](PositionID),
+        CONSTRAINT FK_CareerPath_ToPosition FOREIGN KEY (ToPositionID)
+            REFERENCES dbo.[Position](PositionID),
+        CONSTRAINT FK_CareerPath_CreatedBy FOREIGN KEY (CreatedBy)
+            REFERENCES dbo.Employee(EmployeeID)
+    );
+END;
+GO
+
+IF COL_LENGTH(N'dbo.Employee', N'PositionID') IS NULL
+    ALTER TABLE dbo.Employee ADD PositionID INT NULL;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.foreign_keys
+    WHERE name = N'FK_Employee_Position' AND parent_object_id = OBJECT_ID(N'dbo.Employee')
+)
+    ALTER TABLE dbo.Employee ADD CONSTRAINT FK_Employee_Position
+        FOREIGN KEY (PositionID) REFERENCES dbo.[Position](PositionID);
+GO
+
+IF COL_LENGTH(N'dbo.EmployeePositionHistory', N'PositionID') IS NULL
+    ALTER TABLE dbo.EmployeePositionHistory ADD PositionID INT NULL;
+IF COL_LENGTH(N'dbo.EmployeePositionHistory', N'Salary') IS NULL
+    ALTER TABLE dbo.EmployeePositionHistory ADD Salary DECIMAL(18,2) NULL;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.foreign_keys
+    WHERE name = N'FK_PositionHistory_Position'
+      AND parent_object_id = OBJECT_ID(N'dbo.EmployeePositionHistory')
+)
+    ALTER TABLE dbo.EmployeePositionHistory ADD CONSTRAINT FK_PositionHistory_Position
+        FOREIGN KEY (PositionID) REFERENCES dbo.[Position](PositionID);
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.check_constraints
+    WHERE name = N'CK_PositionHistory_Salary'
+      AND parent_object_id = OBJECT_ID(N'dbo.EmployeePositionHistory')
+)
+    ALTER TABLE dbo.EmployeePositionHistory ADD CONSTRAINT CK_PositionHistory_Salary
+        CHECK (Salary IS NULL OR Salary >= 0);
+GO
+
+IF OBJECT_ID(N'dbo.PromotionRequest', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PromotionRequest (
+        PromotionRequestID INT IDENTITY(1,1) PRIMARY KEY,
+        EmployeeID INT NOT NULL,
+        CurrentPositionID INT NOT NULL,
+        ProposedPositionID INT NOT NULL,
+        CurrentSalary DECIMAL(18,2) NULL,
+        ProposedSalary DECIMAL(18,2) NULL,
+        ProposedDepartment NVARCHAR(100) NULL,
+        EffectiveDate DATE NOT NULL,
+        Reason NVARCHAR(2000) NOT NULL,
+        Status VARCHAR(20) NOT NULL
+            CONSTRAINT DF_PromotionRequest_Status DEFAULT ('Pending'),
+        ProposedBy INT NOT NULL,
+        ProposedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_PromotionRequest_ProposedAt DEFAULT (SYSDATETIME()),
+        ReviewedBy INT NULL,
+        ReviewedAt DATETIME2(0) NULL,
+        ReviewNote NVARCHAR(2000) NULL,
+        CreatedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_PromotionRequest_CreatedAt DEFAULT (SYSDATETIME()),
+        UpdatedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_PromotionRequest_UpdatedAt DEFAULT (SYSDATETIME()),
+        CONSTRAINT CK_PromotionRequest_Positions CHECK (CurrentPositionID <> ProposedPositionID),
+        CONSTRAINT CK_PromotionRequest_CurrentSalary CHECK (CurrentSalary IS NULL OR CurrentSalary >= 0),
+        CONSTRAINT CK_PromotionRequest_ProposedSalary CHECK (ProposedSalary IS NULL OR ProposedSalary >= 0),
+        CONSTRAINT CK_PromotionRequest_Reason CHECK (
+            NULLIF(LTRIM(RTRIM(Reason)), '') IS NOT NULL
+        ),
+        CONSTRAINT CK_PromotionRequest_Status CHECK (
+            Status IN ('Pending', 'Approved', 'Rejected', 'Cancelled')
+        ),
+        CONSTRAINT CK_PromotionRequest_Review CHECK (
+            (Status IN ('Pending', 'Cancelled') AND ReviewedBy IS NULL AND ReviewedAt IS NULL)
+            OR (Status IN ('Approved', 'Rejected') AND ReviewedBy IS NOT NULL AND ReviewedAt IS NOT NULL)
+        ),
+        CONSTRAINT CK_PromotionRequest_RejectionNote CHECK (
+            Status <> 'Rejected' OR NULLIF(LTRIM(RTRIM(ReviewNote)), '') IS NOT NULL
+        ),
+        CONSTRAINT FK_PromotionRequest_Employee FOREIGN KEY (EmployeeID)
+            REFERENCES dbo.Employee(EmployeeID),
+        CONSTRAINT FK_PromotionRequest_CurrentPosition FOREIGN KEY (CurrentPositionID)
+            REFERENCES dbo.[Position](PositionID),
+        CONSTRAINT FK_PromotionRequest_ProposedPosition FOREIGN KEY (ProposedPositionID)
+            REFERENCES dbo.[Position](PositionID),
+        CONSTRAINT FK_PromotionRequest_ProposedBy FOREIGN KEY (ProposedBy)
+            REFERENCES dbo.Employee(EmployeeID),
+        CONSTRAINT FK_PromotionRequest_ReviewedBy FOREIGN KEY (ReviewedBy)
+            REFERENCES dbo.Employee(EmployeeID)
+    );
+END;
+GO
+
+IF COL_LENGTH(N'dbo.EmployeePositionHistory', N'PromotionRequestID') IS NULL
+    ALTER TABLE dbo.EmployeePositionHistory ADD PromotionRequestID INT NULL;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.foreign_keys
+    WHERE name = N'FK_PositionHistory_PromotionRequest'
+      AND parent_object_id = OBJECT_ID(N'dbo.EmployeePositionHistory')
+)
+    ALTER TABLE dbo.EmployeePositionHistory ADD CONSTRAINT FK_PositionHistory_PromotionRequest
+        FOREIGN KEY (PromotionRequestID) REFERENCES dbo.PromotionRequest(PromotionRequestID);
+GO
+
+IF OBJECT_ID(N'dbo.PromotionRequestHistory', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PromotionRequestHistory (
+        PromotionHistoryID INT IDENTITY(1,1) PRIMARY KEY,
+        PromotionRequestID INT NOT NULL,
+        Action VARCHAR(30) NOT NULL,
+        FromStatus VARCHAR(20) NULL,
+        ToStatus VARCHAR(20) NOT NULL,
+        Comment NVARCHAR(2000) NULL,
+        ActionBy INT NOT NULL,
+        CreatedAt DATETIME2(0) NOT NULL
+            CONSTRAINT DF_PromotionRequestHistory_CreatedAt DEFAULT (SYSDATETIME()),
+        CONSTRAINT CK_PromotionRequestHistory_Action CHECK (
+            Action IN ('Created', 'Approved', 'Rejected', 'Cancelled')
+        ),
+        CONSTRAINT CK_PromotionRequestHistory_FromStatus CHECK (
+            FromStatus IS NULL OR FromStatus IN ('Pending', 'Approved', 'Rejected', 'Cancelled')
+        ),
+        CONSTRAINT CK_PromotionRequestHistory_ToStatus CHECK (
+            ToStatus IN ('Pending', 'Approved', 'Rejected', 'Cancelled')
+        ),
+        CONSTRAINT CK_PromotionRequestHistory_Transition CHECK (
+            (Action = 'Created' AND FromStatus IS NULL AND ToStatus = 'Pending')
+            OR (Action = 'Approved' AND FromStatus = 'Pending' AND ToStatus = 'Approved')
+            OR (Action = 'Rejected' AND FromStatus = 'Pending' AND ToStatus = 'Rejected')
+            OR (Action = 'Cancelled' AND FromStatus = 'Pending' AND ToStatus = 'Cancelled')
+        ),
+        CONSTRAINT FK_PromotionRequestHistory_Request FOREIGN KEY (PromotionRequestID)
+            REFERENCES dbo.PromotionRequest(PromotionRequestID),
+        CONSTRAINT FK_PromotionRequestHistory_ActionBy FOREIGN KEY (ActionBy)
+            REFERENCES dbo.Employee(EmployeeID)
+    );
+END;
+GO
+
+/* ============================================================
    RECRUITMENT
    ============================================================ */
 
@@ -572,6 +778,24 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Employee_Department' 
     CREATE INDEX IX_Employee_Department ON dbo.Employee(Department);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_EmployeePositionHistory_Employee' AND object_id = OBJECT_ID(N'dbo.EmployeePositionHistory'))
     CREATE INDEX IX_EmployeePositionHistory_Employee ON dbo.EmployeePositionHistory(EmployeeID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Employee_Position' AND object_id = OBJECT_ID(N'dbo.Employee'))
+    CREATE INDEX IX_Employee_Position ON dbo.Employee(PositionID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Position_JobLevel' AND object_id = OBJECT_ID(N'dbo.Position'))
+    CREATE INDEX IX_Position_JobLevel ON dbo.[Position](JobLevelID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CareerPath_FromPosition' AND object_id = OBJECT_ID(N'dbo.CareerPath'))
+    CREATE INDEX IX_CareerPath_FromPosition ON dbo.CareerPath(FromPositionID, IsActive);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CareerPath_ToPosition' AND object_id = OBJECT_ID(N'dbo.CareerPath'))
+    CREATE INDEX IX_CareerPath_ToPosition ON dbo.CareerPath(ToPositionID, IsActive);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_PromotionRequest_Status' AND object_id = OBJECT_ID(N'dbo.PromotionRequest'))
+    CREATE INDEX IX_PromotionRequest_Status ON dbo.PromotionRequest(Status, ProposedAt DESC);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_PromotionRequest_Employee' AND object_id = OBJECT_ID(N'dbo.PromotionRequest'))
+    CREATE INDEX IX_PromotionRequest_Employee ON dbo.PromotionRequest(EmployeeID, ProposedAt DESC);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_PromotionRequest_Employee_Pending' AND object_id = OBJECT_ID(N'dbo.PromotionRequest'))
+    CREATE UNIQUE INDEX UX_PromotionRequest_Employee_Pending
+        ON dbo.PromotionRequest(EmployeeID) WHERE Status = 'Pending';
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_PromotionRequestHistory_Request_CreatedAt' AND object_id = OBJECT_ID(N'dbo.PromotionRequestHistory'))
+    CREATE INDEX IX_PromotionRequestHistory_Request_CreatedAt
+        ON dbo.PromotionRequestHistory(PromotionRequestID, CreatedAt DESC);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_JobPost_Visible' AND object_id = OBJECT_ID(N'dbo.JobPost'))
     CREATE INDEX IX_JobPost_Visible ON dbo.JobPost(Visible);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_JobPost_Deadline' AND object_id = OBJECT_ID(N'dbo.JobPost'))
@@ -723,6 +947,111 @@ BEGIN TRY
         FROM dbo.Employee employee
         JOIN dbo.Candidate candidate ON employee.CandidateID = candidate.CandidateID
         WHERE candidate.Email = N'an@gmail.com'
+    );
+
+    INSERT INTO dbo.JobLevel (LevelName, RankOrder, Description)
+    SELECT source.LevelName, source.RankOrder, source.Description
+    FROM (VALUES
+        (N'Unclassified', 0, N'Cấp tạm thời cho chức danh cũ chưa được phân loại'),
+        (N'Junior', 1, N'Cấp khởi đầu, làm việc dưới sự hướng dẫn'),
+        (N'Middle', 2, N'Có thể làm việc độc lập trong phạm vi chuyên môn'),
+        (N'Senior', 3, N'Chuyên môn vững và hỗ trợ phát triển thành viên khác'),
+        (N'Lead', 4, N'Dẫn dắt nhóm chuyên môn'),
+        (N'Manager', 5, N'Quản lý con người, kế hoạch và kết quả của bộ phận')
+    ) AS source(LevelName, RankOrder, Description)
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dbo.JobLevel existing WHERE existing.LevelName = source.LevelName
+    );
+
+    INSERT INTO dbo.[Position] (PositionName, Department, JobLevelID, Description)
+    SELECT source.PositionName, source.Department, level.JobLevelID, source.Description
+    FROM (VALUES
+        (N'Junior Software Engineer', N'IT', N'Junior', N'Phát triển phần mềm ở cấp khởi đầu'),
+        (N'Software Engineer', N'IT', N'Middle', N'Phát triển và bảo trì các chức năng phần mềm'),
+        (N'Senior Software Engineer', N'IT', N'Senior', N'Phụ trách kỹ thuật cho các chức năng có độ phức tạp cao'),
+        (N'Team Leader', N'IT', N'Lead', N'Dẫn dắt nhóm phát triển phần mềm'),
+        (N'Engineering Manager', N'IT', N'Manager', N'Quản lý đội ngũ và kế hoạch kỹ thuật'),
+        (N'HR Staff', N'Human Resources', N'Middle', N'Thực hiện nghiệp vụ tuyển dụng và nhân sự'),
+        (N'Senior HR Staff', N'Human Resources', N'Senior', N'Phụ trách nghiệp vụ nhân sự có độ phức tạp cao'),
+        (N'HR Team Leader', N'Human Resources', N'Lead', N'Dẫn dắt nhóm nhân sự'),
+        (N'HR Manager', N'Human Resources', N'Manager', N'Quản lý chiến lược và hoạt động nhân sự')
+    ) AS source(PositionName, Department, LevelName, Description)
+    JOIN dbo.JobLevel level ON level.LevelName = source.LevelName
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dbo.[Position] existing
+        WHERE existing.PositionName = source.PositionName
+          AND existing.Department = source.Department
+    );
+
+    DECLARE @UnclassifiedLevelID INT = (
+        SELECT JobLevelID FROM dbo.JobLevel WHERE LevelName = N'Unclassified'
+    );
+
+    INSERT INTO dbo.[Position] (PositionName, Department, JobLevelID, Description)
+    SELECT DISTINCT employee.Position,
+           COALESCE(NULLIF(LTRIM(RTRIM(employee.Department)), N''), N'Unassigned'),
+           @UnclassifiedLevelID,
+           N'Chức danh được chuyển đổi từ dữ liệu nhân viên hiện có'
+    FROM dbo.Employee employee
+    WHERE NULLIF(LTRIM(RTRIM(employee.Position)), N'') IS NOT NULL
+      AND NOT EXISTS (
+          SELECT 1 FROM dbo.[Position] existing
+          WHERE existing.PositionName = employee.Position
+            AND existing.Department = COALESCE(NULLIF(LTRIM(RTRIM(employee.Department)), N''), N'Unassigned')
+      );
+
+    UPDATE employee
+    SET PositionID = position.PositionID
+    FROM dbo.Employee employee
+    JOIN dbo.[Position] position
+      ON position.PositionName = employee.Position
+     AND position.Department = COALESCE(NULLIF(LTRIM(RTRIM(employee.Department)), N''), N'Unassigned')
+    WHERE employee.PositionID IS NULL;
+
+    UPDATE history
+    SET PositionID = position.PositionID
+    FROM dbo.EmployeePositionHistory history
+    JOIN dbo.[Position] position
+      ON position.PositionName = history.Position
+     AND position.Department = COALESCE(NULLIF(LTRIM(RTRIM(history.Department)), N''), N'Unassigned')
+    WHERE history.PositionID IS NULL;
+
+    UPDATE history
+    SET Salary = employee.Salary
+    FROM dbo.EmployeePositionHistory history
+    JOIN dbo.Employee employee ON employee.EmployeeID = history.EmployeeID
+    WHERE history.EndDate IS NULL AND history.Salary IS NULL;
+
+    INSERT INTO dbo.CareerPath
+        (FromPositionID, ToPositionID, MinMonthsInPosition, RequirementNote, CreatedBy)
+    SELECT fromPosition.PositionID, toPosition.PositionID, source.MinMonths,
+           source.RequirementNote, @HRID
+    FROM (VALUES
+        (N'Junior Software Engineer', N'IT', N'Software Engineer', N'IT', 6,
+         N'Hoàn thành giai đoạn hướng dẫn và có thể thực hiện công việc độc lập'),
+        (N'Software Engineer', N'IT', N'Senior Software Engineer', N'IT', 0,
+         N'Lộ trình mẫu dùng để demo đề nghị thăng chức cho nhân viên hiện tại'),
+        (N'Senior Software Engineer', N'IT', N'Team Leader', N'IT', 18,
+         N'Có năng lực dẫn dắt kỹ thuật và hỗ trợ thành viên trong nhóm'),
+        (N'Team Leader', N'IT', N'Engineering Manager', N'IT', 12,
+         N'Có kinh nghiệm quản lý nhóm, kế hoạch và kết quả kỹ thuật'),
+        (N'HR Staff', N'Human Resources', N'Senior HR Staff', N'Human Resources', 12,
+         N'Hoàn thành tốt nghiệp vụ tuyển dụng và quản lý hồ sơ nhân sự'),
+        (N'Senior HR Staff', N'Human Resources', N'HR Team Leader', N'Human Resources', 12,
+         N'Có khả năng hướng dẫn nghiệp vụ và điều phối công việc nhóm'),
+        (N'HR Team Leader', N'Human Resources', N'HR Manager', N'Human Resources', 12,
+         N'Có năng lực quản lý kế hoạch và chính sách nhân sự')
+    ) AS source(FromName, FromDepartment, ToName, ToDepartment, MinMonths, RequirementNote)
+    JOIN dbo.[Position] fromPosition
+      ON fromPosition.PositionName = source.FromName
+     AND fromPosition.Department = source.FromDepartment
+    JOIN dbo.[Position] toPosition
+      ON toPosition.PositionName = source.ToName
+     AND toPosition.Department = source.ToDepartment
+    WHERE NOT EXISTS (
+        SELECT 1 FROM dbo.CareerPath existing
+        WHERE existing.FromPositionID = fromPosition.PositionID
+          AND existing.ToPositionID = toPosition.PositionID
     );
 
     INSERT INTO dbo.JobPost
@@ -952,6 +1281,10 @@ UNION ALL SELECT N'Employees', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.Employee
 UNION ALL SELECT N'Job posts', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.JobPost
 UNION ALL SELECT N'Applications', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.Apply
 UNION ALL SELECT N'Interviews', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.Interview
+UNION ALL SELECT N'Job levels', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.JobLevel
+UNION ALL SELECT N'Positions', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.[Position]
+UNION ALL SELECT N'Career paths', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.CareerPath
+UNION ALL SELECT N'Promotion requests', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.PromotionRequest
 UNION ALL SELECT N'Profile document types', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.ProfileDocumentType
 UNION ALL SELECT N'Employee profile documents', CAST(COUNT(*) AS NVARCHAR(30)) FROM dbo.EmployeeProfileDocument;
 GO
