@@ -97,7 +97,7 @@ BEGIN
         EmployeeCode VARCHAR(20) NOT NULL,
         HireDate DATE NOT NULL,
         Department NVARCHAR(100) NULL,
-        Position NVARCHAR(100) NULL,
+        Position NVARCHAR(150) NULL,
         Salary DECIMAL(18,2) NULL,
         IsActive BIT NOT NULL
             CONSTRAINT DF_Employee_IsActive DEFAULT (1),
@@ -120,7 +120,7 @@ BEGIN
         HistoryID INT IDENTITY(1,1) PRIMARY KEY,
         EmployeeID INT NOT NULL,
         RoleID INT NOT NULL,
-        Position NVARCHAR(100) NULL,
+        Position NVARCHAR(150) NULL,
         Department NVARCHAR(100) NULL,
         StartDate DATE NOT NULL,
         EndDate DATE NULL,
@@ -134,6 +134,22 @@ BEGIN
         CONSTRAINT CK_PositionHistory_Dates CHECK (EndDate IS NULL OR EndDate >= StartDate)
     );
 END;
+GO
+
+IF EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID(N'dbo.Employee')
+      AND name = N'Position' AND max_length < 300
+)
+    ALTER TABLE dbo.Employee ALTER COLUMN Position NVARCHAR(150) NULL;
+GO
+
+IF EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID(N'dbo.EmployeePositionHistory')
+      AND name = N'Position' AND max_length < 300
+)
+    ALTER TABLE dbo.EmployeePositionHistory ALTER COLUMN Position NVARCHAR(150) NULL;
 GO
 
 /* ============================================================
