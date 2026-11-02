@@ -84,6 +84,48 @@
 </div>
 
 <div class="iv-card">
+    <h2>Đề nghị thăng chức (${employeePromotionRequests.size()})</h2>
+    <c:choose>
+        <c:when test="${empty employeePromotionRequests}">
+            <div class="iv-empty">Chưa có đề nghị thăng chức nào.</div>
+        </c:when>
+        <c:otherwise>
+            <div class="iv-table-wrap">
+                <table class="iv-table">
+                    <thead>
+                        <tr><th>Vị trí đề xuất</th><th>Người đề nghị</th><th>Ngày hiệu lực</th><th>Trạng thái</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="promotion" items="${employeePromotionRequests}">
+                            <tr>
+                                <td><b><c:out value="${promotion.proposedPosition.positionName}"/></b></td>
+                                <td>
+                                    <c:out value="${promotion.proposedByName}"/><br>
+                                    <span class="iv-small iv-muted"><fmt:formatDate value="${promotion.proposedAt}" pattern="dd/MM/yyyy HH:mm"/></span>
+                                </td>
+                                <td><fmt:formatDate value="${promotion.effectiveDate}" pattern="dd/MM/yyyy"/></td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${promotion.status == 'Pending'}"><span class="iv-badge iv-badge-blue">Chờ duyệt</span></c:when>
+                                        <c:when test="${promotion.status == 'Approved'}"><span class="iv-badge iv-badge-green">Đã duyệt</span></c:when>
+                                        <c:when test="${promotion.status == 'Rejected'}"><span class="iv-badge iv-badge-red">Từ chối</span></c:when>
+                                        <c:otherwise><span class="iv-badge iv-badge-gray">Đã hủy</span></c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>
+                                    <a class="iv-btn iv-btn-sm"
+                                       href="${pageContext.request.contextPath}/promotion-request?id=${promotion.promotionRequestId}">Xem</a>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+        </c:otherwise>
+    </c:choose>
+</div>
+
+<div class="iv-card">
     <h2>Lịch sử nghề nghiệp</h2>
     <c:choose>
         <c:when test="${empty career.positionHistory}">

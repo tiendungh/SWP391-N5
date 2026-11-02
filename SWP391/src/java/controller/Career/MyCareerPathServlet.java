@@ -1,6 +1,7 @@
 package controller.Career;
 
 import dal.CareerPathDAO;
+import dal.PromotionRequestDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -52,6 +53,10 @@ public class MyCareerPathServlet extends HttpServlet {
 
         request.setAttribute("career", career);
         request.setAttribute("viewingOwnCareer", targetEmployeeId == loggedInEmployeeId);
+        PromotionRequestDAO promotionDao = new PromotionRequestDAO();
+        request.setAttribute("employeePromotionRequests",
+                promotionDao.getRequestsByEmployee(targetEmployeeId));
+        promotionDao.closeConnection();
         request.getRequestDispatcher("/career/my_career_path.jsp").forward(request, response);
     }
 
