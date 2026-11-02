@@ -29,6 +29,8 @@
                     </c:if>
                     <a href="${pageContext.request.contextPath}/my-profile-documents"
                        class="${currentNav == 'myProfile' ? 'active' : ''}">👤 Hồ sơ của tôi</a>
+                    <a href="${pageContext.request.contextPath}/my-career-path"
+                       class="${currentNav == 'myCareer' ? 'active' : ''}">🧭 Lộ trình của tôi</a>
                 </nav>
                 <div class="iv-sidebar-footer">
                     Đăng nhập với<br>

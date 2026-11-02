@@ -11,7 +11,7 @@ public class DBContext {
         try {
             String url = "jdbc:sqlserver://localhost:1433;databaseName=SWP391;encrypt=true;trustServerCertificate=true";
             String username = "sa";
-            String password = "123";
+            String password = "Hoanganh221@";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             c = DriverManager.getConnection(url, username, password);
         } catch (Exception e) {
