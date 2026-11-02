@@ -7483,3 +7483,38 @@ h6 {
 .career-searching-text .boxed-btn3:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,0,0,.18)}
 .career-roadmap-card{position:relative;z-index:8;margin:10px 0 10px 25px;padding:28px;border-radius:20px;background:rgba(255,255,255,.97);box-shadow:0 22px 55px rgba(0,0,0,.2);color:#172033}
 .roadmap-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px}.roadmap-kicker{font-size:11px;letter-spacing:1.5px;font-weight:800;color:#2563eb}.roadmap-card-header h4{font-size:24px;font-weight:700;margin:5px 0 0;color:#172033}.roadmap-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#eff6ff;color:#2563eb;font-size:24px;font-weight:700}.roadmap-step{display:flex;align-items:center;gap:14px}.roadmap-step>span{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eef2f7;color:#64748b;font-size:12px;font-weight:800;flex-shrink:0}.roadmap-step.active>span{background:#2563eb;color:#fff;box-shadow:0 0 0 5px #dbeafe}.roadmap-step strong{display:block;font-size:15px;color:#172033}.roadmap-step small{display:block;color:#7b8798;margin-top:3px}.roadmap-line{height:20px;border-left:2px dashed #cbd5e1;margin-left:18px}.roadmap-card-footer{display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #e8edf3;margin-top:24px;padding-top:18px;color:#64748b;font-size:12px}.roadmap-card-footer span{padding:7px 10px;background:#f8fafc;border-radius:8px}@media(max-width:767px){.job_searcing_wrap.career-growth-wrap{padding:55px 0}.career-searching-text{padding:0 10px 30px}.career-searching-text h3{font-size:30px !important}.career-roadmap-card{margin:0 10px;padding:22px}.roadmap-card-header h4{font-size:20px}}
+
+.career-searching-text .boxed-btn3 {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+.career-searching-text .boxed-btn3:focus-visible {
+  outline: 3px solid rgba(255,255,255,.9);
+  outline-offset: 4px;
+}
+.roadmap-step > div { min-width: 0; }
+.roadmap-step strong, .roadmap-step small { overflow-wrap: anywhere; }
+.roadmap-icon i { font-size: 20px; }
+
+@media (max-width: 767px) {
+  .career-searching-text .boxed-btn3 { width: 100%; padding: 14px 18px; }
+  .roadmap-card-footer { flex-direction: column; }
+  .roadmap-card-footer span { width: 100%; }
+}
+
+@media (max-width: 413px) {
+  .job_searcing_wrap.career-growth-wrap { padding: 44px 0; }
+  .career-searching-text { padding-inline: 4px; }
+  .career-searching-text h3 { font-size: 27px !important; }
+  .career-roadmap-card { margin-inline: 4px; padding: 18px; border-radius: 16px; }
+  .roadmap-card-header h4 { font-size: 18px; }
+  .roadmap-step { gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .career-searching-text .boxed-btn3 { transition: none; }
+  .career-searching-text .boxed-btn3:hover { transform: none; }
+}
