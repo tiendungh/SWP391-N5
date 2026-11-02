@@ -1,3 +1,4 @@
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -53,6 +54,12 @@ public class DepartmentMemberEditServlet extends HttpServlet {
         String empIdStr = request.getParameter("empId");
         String isLeaderChange = request.getParameter("isLeader"); // 1 nếu là đổi trưởng nhóm
 
+        // THÊM MỚI: Nhận nguồn gọi và deptId để bảo toàn ngữ cảnh giao diện
+        String from = request.getParameter("from");
+        String deptIdParam = request.getParameter("deptId");
+        request.setAttribute("fromSource", from);
+        request.setAttribute("deptIdParam", deptIdParam);
+
         if (empIdStr != null && !empIdStr.isEmpty()) {
             int empId = Integer.parseInt(empIdStr);
             Map<String, Object> emp = dao.getEmployeeDetailById(empId);
@@ -60,7 +67,7 @@ public class DepartmentMemberEditServlet extends HttpServlet {
         }
 
         List<DepartmentModel> departments = dao.getAllDepartments();
-        List<Map<String, Object>> candidateLeaders = dao.getEmployeesByDepartment(deptName);
+        List candidateLeaders = (List) dao.getEmployeesByDepartment(deptName);
 
         request.setAttribute("deptName", deptName);
         request.setAttribute("departments", departments);
@@ -84,6 +91,10 @@ public class DepartmentMemberEditServlet extends HttpServlet {
         String mode = request.getParameter("mode"); // "updateMember" hoặc "changeLeader"
         String deptName = request.getParameter("deptName");
 
+        // THÊM MỚI: Đọc tham số nguồn chuyển tiếp và mã phòng ban
+        String from = request.getParameter("from");
+        String deptIdParam = request.getParameter("deptId");
+
         if ("changeLeader".equals(mode)) {
             int deptId = Integer.parseInt(request.getParameter("deptId"));
             String leaderIdStr = request.getParameter("newLeaderId");
@@ -93,6 +104,17 @@ public class DepartmentMemberEditServlet extends HttpServlet {
             if (newLeaderId != null) {
                 dao.assignEmployeeToDepartment(newLeaderId, deptName, "Trưởng nhóm / Leader", "Bổ nhiệm chức vụ Trưởng nhóm");
             }
+
+            // THÊM MỚI: Nếu đi từ màn hình Quản lý phòng thì quay về Leader Room
+            if ("leader".equalsIgnoreCase(from)) {
+                String redirectUrl = request.getContextPath() + "/leader-room?tab=members";
+                if (deptIdParam != null && !deptIdParam.isEmpty()) {
+                    redirectUrl += "&deptId=" + deptIdParam;
+                }
+                response.sendRedirect(redirectUrl);
+                return;
+            }
+
             response.sendRedirect(request.getContextPath() + "/department-detail?name=" + URLEncoder.encode(deptName, StandardCharsets.UTF_8) + "&status=leader_updated");
             return;
         } else if ("updateMember".equals(mode)) {
@@ -109,6 +131,16 @@ public class DepartmentMemberEditServlet extends HttpServlet {
             // Cập nhật cả Email, Phone (bảng Candidate) và Phòng ban, Vị trí (bảng Employee)
             dao.updateEmployeeFullInfo(empId, email, phone, targetDept, position, note);
             
+            // THÊM MỚI: Nếu đi từ màn hình Quản lý phòng thì quay về Leader Room thay vì department-detail
+            if ("leader".equalsIgnoreCase(from)) {
+                String redirectUrl = request.getContextPath() + "/leader-room?tab=members";
+                if (deptIdParam != null && !deptIdParam.isEmpty()) {
+                    redirectUrl += "&deptId=" + deptIdParam;
+                }
+                response.sendRedirect(redirectUrl);
+                return;
+            }
+
             response.sendRedirect(request.getContextPath() + "/department-detail?name=" + URLEncoder.encode(targetDept, StandardCharsets.UTF_8) + "&status=member_updated");
             return;
         }

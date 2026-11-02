@@ -1,282 +1,3 @@
-//package dal;
-//
-//import java.sql.PreparedStatement;
-//import java.sql.ResultSet;
-//import java.sql.Types;
-//import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
-//import model.DepartmentModel;
-//
-//public class DepartmentDAO extends DBContext {
-//
-//    // Lấy danh sách tất cả phòng ban
-//    public List<DepartmentModel> getAllDepartments() {
-//        List<DepartmentModel> list = new ArrayList<>();
-//        if (c == null) return list;
-//
-//        String sql = "SELECT d.DepartmentID, d.DepartmentName, d.Description, d.ManagerID, c.CandidateName AS ManagerName "
-//                   + "FROM dbo.Department d "
-//                   + "LEFT JOIN dbo.Employee e ON d.ManagerID = e.EmployeeID "
-//                   + "LEFT JOIN dbo.Candidate c ON e.CandidateID = c.CandidateID "
-//                   + "ORDER BY d.DepartmentName";
-//
-//        try (PreparedStatement ps = c.prepareStatement(sql);
-//             ResultSet rs = ps.executeQuery()) {
-//            while (rs.next()) {
-//                DepartmentModel d = new DepartmentModel();
-//                d.setDepartmentId(rs.getInt("DepartmentID"));
-//                d.setDepartmentName(rs.getNString("DepartmentName"));
-//                d.setDescription(rs.getNString("Description"));
-//                d.setManagerId((Integer) rs.getObject("ManagerID"));
-//                d.setManagerName(rs.getNString("ManagerName"));
-//                list.add(d);
-//            }
-//        } catch (Exception e) {
-//            System.err.println("DepartmentDAO.getAllDepartments error: " + e.getMessage());
-//        }
-//        return list;
-//    }
-//
-//    // Thêm mới phòng ban
-//    public boolean addDepartment(String departmentName, String description, Integer managerId) {
-//        if (c == null) return false;
-//
-//        String sql = "INSERT INTO dbo.Department (DepartmentName, Description, ManagerID) VALUES (?, ?, ?)";
-//        try (PreparedStatement ps = c.prepareStatement(sql)) {
-//            ps.setNString(1, departmentName);
-//            ps.setNString(2, description);
-//            if (managerId != null && managerId > 0) {
-//                ps.setInt(3, managerId);
-//            } else {
-//                ps.setNull(3, Types.INTEGER);
-//            }
-//            return ps.executeUpdate() > 0;
-//        } catch (Exception e) {
-//            System.err.println("DepartmentDAO.addDepartment error: " + e.getMessage());
-//            return false;
-//        }
-//    }
-//
-//    // Gán nhân sự vào phòng ban và ghi nhận lịch sử vào EmployeePositionHistory
-//    public boolean assignEmployeeToDepartment(int employeeId, String departmentName, String position, String note) {
-//        if (c == null) return false;
-//
-//        String closeHistorySql = "UPDATE dbo.EmployeePositionHistory SET EndDate = CAST(GETDATE() AS DATE) "
-//                               + "WHERE EmployeeID = ? AND EndDate IS NULL";
-//        String updateEmpSql = "UPDATE dbo.Employee SET Department = ?, Position = ? WHERE EmployeeID = ?";
-//        String insertHistorySql = "INSERT INTO dbo.EmployeePositionHistory (EmployeeID, RoleID, Position, Department, StartDate, Note) "
-//                                + "SELECT EmployeeID, RoleID, ?, ?, CAST(GETDATE() AS DATE), ? "
-//                                + "FROM dbo.Employee WHERE EmployeeID = ?";
-//
-//        boolean originalAutoCommit = true;
-//        try {
-//            originalAutoCommit = c.getAutoCommit();
-//            c.setAutoCommit(false); // Bắt đầu transaction
-//
-//            // 1. Đóng vị trí cũ
-//            try (PreparedStatement psClose = c.prepareStatement(closeHistorySql)) {
-//                psClose.setInt(1, employeeId);
-//                psClose.executeUpdate();
-//            }
-//
-//            // 2. Cập nhật phòng ban mới cho Employee
-//            try (PreparedStatement psEmp = c.prepareStatement(updateEmpSql)) {
-//                psEmp.setNString(1, departmentName);
-//                psEmp.setNString(2, position);
-//                psEmp.setInt(3, employeeId);
-//                psEmp.executeUpdate();
-//            }
-//
-//            // 3. Ghi lịch sử mới vào EmployeePositionHistory
-//            try (PreparedStatement psHist = c.prepareStatement(insertHistorySql)) {
-//                psHist.setNString(1, position);
-//                psHist.setNString(2, departmentName);
-//                psHist.setNString(3, note != null ? note : "Gán phòng ban bởi Manager");
-//                psHist.setInt(4, employeeId);
-//                psHist.executeUpdate();
-//            }
-//
-//            c.commit();
-//            return true;
-//        } catch (Exception e) {
-//            try {
-//                if (c != null) c.rollback();
-//            } catch (Exception ex) {
-//                System.err.println("DepartmentDAO rollback error: " + ex.getMessage());
-//            }
-//            System.err.println("DepartmentDAO.assignEmployeeToDepartment error: " + e.getMessage());
-//            return false;
-//        } finally {
-//            try {
-//                if (c != null) c.setAutoCommit(originalAutoCommit);
-//            } catch (Exception ex) {
-//                System.err.println("DepartmentDAO reset autoCommit error: " + ex.getMessage());
-//            }
-//        }
-//    }
-//
-//    // =========================================================================
-//    // THÊM MỚI: PHỤC VỤ RIÊNG CHO TASKBAR "TỔ CHỨC PHÒNG BAN"
-//    // =========================================================================
-//
-//    // Lấy danh sách phòng ban kèm đếm số lượng nhân sự đang hoạt động
-//    public List<DepartmentModel> getAllDepartmentsWithCount() {
-//        List<DepartmentModel> list = new ArrayList<>();
-//        if (c == null) return list;
-//
-//        String sql = "SELECT d.DepartmentID, d.DepartmentName, d.Description, d.ManagerID, "
-//                   + "       c.CandidateName AS ManagerName, "
-//                   + "       (SELECT COUNT(*) FROM dbo.Employee e WHERE e.Department = d.DepartmentName AND e.IsActive = 1) AS TotalEmp "
-//                   + "FROM dbo.Department d "
-//                   + "LEFT JOIN dbo.Employee m ON d.ManagerID = m.EmployeeID "
-//                   + "LEFT JOIN dbo.Candidate c ON m.CandidateID = c.CandidateID "
-//                   + "ORDER BY d.DepartmentName";
-//
-//        try (PreparedStatement ps = c.prepareStatement(sql);
-//             ResultSet rs = ps.executeQuery()) {
-//            while (rs.next()) {
-//                DepartmentModel d = new DepartmentModel();
-//                d.setDepartmentId(rs.getInt("DepartmentID"));
-//                d.setDepartmentName(rs.getNString("DepartmentName"));
-//                d.setDescription(rs.getNString("Description"));
-//                d.setManagerId((Integer) rs.getObject("ManagerID"));
-//                d.setManagerName(rs.getNString("ManagerName"));
-//                d.setEmployeeCount(rs.getInt("TotalEmp"));
-//                list.add(d);
-//            }
-//        } catch (Exception e) {
-//            System.err.println("DepartmentDAO.getAllDepartmentsWithCount error: " + e.getMessage());
-//        }
-//        return list;
-//    }
-//
-//    // Lấy danh sách nhân viên theo phòng ban (nếu deptName rỗng thì lấy tất cả nhân sự active)
-//    public List<Map<String, Object>> getEmployeesByDepartment(String deptName) {
-//        List<Map<String, Object>> list = new ArrayList<>();
-//        if (c == null) return list;
-//
-//        StringBuilder sql = new StringBuilder();
-//        sql.append("SELECT e.EmployeeID, e.Position, e.EmployeeCode, e.Department, ")
-//           .append("       c.CandidateName AS FullName, c.Email, c.PhoneNumber, r.RoleName ")
-//           .append("FROM dbo.Employee e ")
-//           .append("JOIN dbo.Candidate c ON e.CandidateID = c.CandidateID ")
-//           .append("JOIN dbo.Roles r ON e.RoleID = r.RoleID ")
-//           .append("WHERE e.IsActive = 1 ");
-//
-//        if (deptName != null && !deptName.trim().isEmpty()) {
-//            sql.append("AND e.Department = ? ");
-//        }
-//        sql.append("ORDER BY c.CandidateName");
-//
-//        try (PreparedStatement ps = c.prepareStatement(sql.toString())) {
-//            if (deptName != null && !deptName.trim().isEmpty()) {
-//                ps.setNString(1, deptName.trim());
-//            }
-//            try (ResultSet rs = ps.executeQuery()) {
-//                while (rs.next()) {
-//                    Map<String, Object> emp = new HashMap<>();
-//                    emp.put("employeeId", rs.getInt("EmployeeID"));
-//                    emp.put("position", rs.getNString("Position"));
-//                    emp.put("employeeCode", rs.getString("EmployeeCode"));
-//                    emp.put("department", rs.getNString("Department"));
-//                    emp.put("fullName", rs.getNString("FullName"));
-//                    emp.put("email", rs.getString("Email"));
-//                    emp.put("phone", rs.getString("PhoneNumber"));
-//                    emp.put("roleName", rs.getString("RoleName"));
-//                    list.add(emp);
-//                }
-//            }
-//        } catch (Exception e) {
-//            System.err.println("DepartmentDAO.getEmployeesByDepartment error: " + e.getMessage());
-//        }
-//        return list;
-//    }
-//
-//    // =========================================================================
-//    // THÊM MỚI: XỬ LÝ TRANG CHI TIẾT PHÒNG BAN & TRƯỞNG NHÓM
-//    // =========================================================================
-//
-//    /** Lấy thông tin phòng ban theo tên */
-//    public DepartmentModel getDepartmentByName(String deptName) {
-//        if (c == null || deptName == null) return null;
-//        String sql = "SELECT d.DepartmentID, d.DepartmentName, d.Description, d.ManagerID, "
-//                   + "       c.CandidateName AS ManagerName "
-//                   + "FROM dbo.Department d "
-//                   + "LEFT JOIN dbo.Employee m ON d.ManagerID = m.EmployeeID "
-//                   + "LEFT JOIN dbo.Candidate c ON m.CandidateID = c.CandidateID "
-//                   + "WHERE d.DepartmentName = ?";
-//        try (PreparedStatement ps = c.prepareStatement(sql)) {
-//            ps.setNString(1, deptName);
-//            try (ResultSet rs = ps.executeQuery()) {
-//                if (rs.next()) {
-//                    DepartmentModel d = new DepartmentModel();
-//                    d.setDepartmentId(rs.getInt("DepartmentID"));
-//                    d.setDepartmentName(rs.getNString("DepartmentName"));
-//                    d.setDescription(rs.getNString("Description"));
-//                    d.setManagerId((Integer) rs.getObject("ManagerID"));
-//                    d.setManagerName(rs.getNString("ManagerName"));
-//                    return d;
-//                }
-//            }
-//        } catch (Exception e) {
-//            System.err.println("DepartmentDAO.getDepartmentByName error: " + e.getMessage());
-//        }
-//        return null;
-//    }
-//
-//    /** Lấy chi tiết thông tin nhân viên theo EmployeeID */
-//    public Map<String, Object> getEmployeeDetailById(int employeeId) {
-//        Map<String, Object> map = new HashMap<>();
-//        if (c == null) return map;
-//        String sql = "SELECT e.EmployeeID, e.EmployeeCode, e.Department, e.Position, e.HireDate, "
-//                   + "       c.CandidateName AS FullName, c.Email, c.PhoneNumber, r.RoleName "
-//                   + "FROM dbo.Employee e "
-//                   + "JOIN dbo.Candidate c ON e.CandidateID = c.CandidateID "
-//                   + "JOIN dbo.Roles r ON e.RoleID = r.RoleID "
-//                   + "WHERE e.EmployeeID = ?";
-//        try (PreparedStatement ps = c.prepareStatement(sql)) {
-//            ps.setInt(1, employeeId);
-//            try (ResultSet rs = ps.executeQuery()) {
-//                if (rs.next()) {
-//                    map.put("employeeId", rs.getInt("EmployeeID"));
-//                    map.put("employeeCode", rs.getString("EmployeeCode"));
-//                    map.put("department", rs.getNString("Department"));
-//                    map.put("position", rs.getNString("Position"));
-//                    map.put("hireDate", rs.getDate("HireDate"));
-//                    map.put("fullName", rs.getNString("FullName"));
-//                    map.put("email", rs.getString("Email"));
-//                    map.put("phone", rs.getString("PhoneNumber"));
-//                    map.put("roleName", rs.getString("RoleName"));
-//                }
-//            }
-//        } catch (Exception e) {
-//            System.err.println("DepartmentDAO.getEmployeeDetailById error: " + e.getMessage());
-//        }
-//        return map;
-//    }
-//
-//    /** Cập nhật Trưởng nhóm cho phòng ban trong bảng Department */
-//    public boolean updateDepartmentLeader(int departmentId, Integer managerEmployeeId) {
-//        if (c == null) return false;
-//        String sql = "UPDATE dbo.Department SET ManagerID = ? WHERE DepartmentID = ?";
-//        try (PreparedStatement ps = c.prepareStatement(sql)) {
-//            if (managerEmployeeId != null && managerEmployeeId > 0) {
-//                ps.setInt(1, managerEmployeeId);
-//            } else {
-//                ps.setNull(1, Types.INTEGER);
-//            }
-//            ps.setInt(2, departmentId);
-//            return ps.executeUpdate() > 0;
-//        } catch (Exception e) {
-//            System.err.println("DepartmentDAO.updateDepartmentLeader error: " + e.getMessage());
-//            return false;
-//        }
-//    }
-//}
-
-
 package dal;
 
 import java.sql.PreparedStatement;
@@ -287,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import model.DepartmentModel;
+import model.DepartmentTopicModel;
+import model.DepartmentTaskModel;
 
 public class DepartmentDAO extends DBContext {
 
@@ -397,7 +120,7 @@ public class DepartmentDAO extends DBContext {
     }
 
     // =========================================================================
-    // THÊM MỚI: PHỤC VỤ RIÊNG CHO TASKBAR "TỔ CHỨC PHÒNG BAN"
+    // PHỤC VỤ CHO TASKBAR "TỔ CHỨC PHÒNG BAN"
     // =========================================================================
 
     // Lấy danh sách phòng ban kèm đếm số lượng nhân sự đang hoạt động
@@ -432,8 +155,8 @@ public class DepartmentDAO extends DBContext {
     }
 
     // Lấy danh sách nhân viên theo phòng ban (nếu deptName rỗng thì lấy tất cả nhân sự active)
-    public List<Map<String, Object>> getEmployeesByDepartment(String deptName) {
-        List<Map<String, Object>> list = new ArrayList<>();
+    public List getEmployeesByDepartment(String deptName) {
+        List list = new ArrayList();
         if (c == null) return list;
 
         StringBuilder sql = new StringBuilder();
@@ -474,7 +197,7 @@ public class DepartmentDAO extends DBContext {
     }
 
     // =========================================================================
-    // THÊM MỚI: XỬ LÝ TRANG CHI TIẾT PHÒNG BAN & TRƯỞNG NHÓM
+    // XỬ LÝ TRANG CHI TIẾT PHÒNG BAN & TRƯỞNG NHÓM
     // =========================================================================
 
     /** Lấy thông tin phòng ban theo tên */
@@ -558,7 +281,6 @@ public class DepartmentDAO extends DBContext {
     public boolean updateEmployeeFullInfo(int employeeId, String email, String phone, String department, String position, String note) {
         if (c == null) return false;
 
-        // Cập nhật Email và Số điện thoại vào bảng Candidate
         String updateCandidateSql = "UPDATE dbo.Candidate SET Email = ?, PhoneNumber = ? "
                                   + "WHERE CandidateID = (SELECT CandidateID FROM dbo.Employee WHERE EmployeeID = ?)";
         try (PreparedStatement ps = c.prepareStatement(updateCandidateSql)) {
@@ -570,7 +292,299 @@ public class DepartmentDAO extends DBContext {
             System.err.println("DepartmentDAO.updateEmployeeFullInfo Candidate error: " + e.getMessage());
         }
 
-        // Tái sử dụng logic điều chuyển phòng ban và ghi log lịch sử
         return assignEmployeeToDepartment(employeeId, department, position, note);
+    }
+
+    // =========================================================================
+    // PHỤC VỤ CHO 16 TRƯỞNG NHÓM (LEADER ROOM MODULE)
+    // =========================================================================
+
+    /** 1. Kiểm tra xem EmployeeID hiện tại có đang làm Trưởng nhóm của phòng ban nào không */
+//    public DepartmentModel getDepartmentByLeaderId(int employeeId) {
+//        if (c == null) return null;
+//        String sql = "SELECT d.DepartmentID, d.DepartmentName, d.Description, d.ManagerID, c.CandidateName AS ManagerName "
+//                   + "FROM dbo.Department d "
+//                   + "JOIN dbo.Employee e ON d.ManagerID = e.EmployeeID "
+//                   + "JOIN dbo.Candidate c ON e.CandidateID = c.CandidateID "
+//                   + "WHERE d.ManagerID = ?";
+//        try (PreparedStatement ps = c.prepareStatement(sql)) {
+//            ps.setInt(1, employeeId);
+//            try (ResultSet rs = ps.executeQuery()) {
+//                if (rs.next()) {
+//                    DepartmentModel d = new DepartmentModel();
+//                    d.setDepartmentId(rs.getInt("DepartmentID"));
+//                    d.setDepartmentName(rs.getNString("DepartmentName"));
+//                    d.setDescription(rs.getNString("Description"));
+//                    d.setManagerId(rs.getInt("ManagerID"));
+//                    d.setManagerName(rs.getNString("ManagerName"));
+//                    return d;
+//                }
+//            }
+//        } catch (Exception e) {
+//            System.err.println("DepartmentDAO.getDepartmentByLeaderId error: " + e.getMessage());
+//        }
+//        return null;
+//    }
+    
+    public DepartmentModel getDepartmentByLeaderId(int employeeId) {
+        if (c == null) return null;
+        
+        // SỬA: Dùng LEFT JOIN cho Candidate và hỗ trợ tìm theo ManagerID HOẶC phòng ban hiện tại của nhân sự
+        String sql = "SELECT TOP 1 d.DepartmentID, d.DepartmentName, d.Description, d.ManagerID, "
+                   + "       COALESCE(c.CandidateName, e.EmployeeCode, N'Trưởng phòng') AS ManagerName "
+                   + "FROM dbo.Department d "
+                   + "LEFT JOIN dbo.Employee m ON d.ManagerID = m.EmployeeID "
+                   + "LEFT JOIN dbo.Employee e ON (e.EmployeeID = ? AND (d.ManagerID = e.EmployeeID OR d.DepartmentName = e.Department)) "
+                   + "LEFT JOIN dbo.Candidate c ON (m.CandidateID = c.CandidateID OR e.CandidateID = c.CandidateID) "
+                   + "WHERE d.ManagerID = ? OR e.EmployeeID = ? "
+                   + "ORDER BY CASE WHEN d.ManagerID = ? THEN 1 ELSE 2 END";
+                   
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            ps.setInt(2, employeeId);
+            ps.setInt(3, employeeId);
+            ps.setInt(4, employeeId);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    DepartmentModel d = new DepartmentModel();
+                    d.setDepartmentId(rs.getInt("DepartmentID"));
+                    
+                    try {
+                        d.setDepartmentName(rs.getNString("DepartmentName"));
+                    } catch (Exception ex) {
+                        d.setDepartmentName(rs.getString("DepartmentName"));
+                    }
+                    
+                    try {
+                        d.setDescription(rs.getNString("Description"));
+                    } catch (Exception ex) {
+                        d.setDescription(rs.getString("Description"));
+                    }
+                    
+                    d.setManagerId((Integer) rs.getObject("ManagerID"));
+                    
+                    try {
+                        d.setManagerName(rs.getNString("ManagerName"));
+                    } catch (Exception ex) {
+                        d.setManagerName(rs.getString("ManagerName"));
+                    }
+                    
+                    return d;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.getDepartmentByLeaderId error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /** 2. Lấy danh sách chủ đề theo DepartmentID */
+    public List<DepartmentTopicModel> getTopicsByDepartment(int departmentId) {
+        List<DepartmentTopicModel> list = new ArrayList<>();
+        if (c == null) return list;
+        String sql = "SELECT TopicID, DepartmentID, TopicTitle, Description, CreatedAt, CreatedBy "
+                   + "FROM dbo.DepartmentTopic WHERE DepartmentID = ? ORDER BY CreatedAt DESC";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, departmentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DepartmentTopicModel t = new DepartmentTopicModel();
+                    t.setTopicId(rs.getInt("TopicID"));
+                    t.setDepartmentId(rs.getInt("DepartmentID"));
+                    t.setTopicTitle(rs.getNString("TopicTitle"));
+                    t.setDescription(rs.getNString("Description"));
+                    t.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                    t.setCreatedBy(rs.getInt("CreatedBy"));
+                    list.add(t);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.getTopicsByDepartment error: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /** 3. Thêm mới chủ đề giao việc */
+    public boolean addTopic(int deptId, String title, String desc, int createdBy) {
+        if (c == null) return false;
+        String sql = "INSERT INTO dbo.DepartmentTopic (DepartmentID, TopicTitle, Description, CreatedBy) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, deptId);
+            ps.setNString(2, title);
+            ps.setNString(3, desc);
+            ps.setInt(4, createdBy);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.addTopic error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** 4. Lấy danh sách nhiệm vụ của một nhân viên cụ thể */
+    public List<DepartmentTaskModel> getTasksByEmployee(int employeeId) {
+        List<DepartmentTaskModel> list = new ArrayList<>();
+        if (c == null) return list;
+        String sql = "SELECT t.TaskID, t.TopicID, t.EmployeeID, t.TaskContent, t.Deadline, t.Progress, "
+                   + "       t.LeaderNote, t.IsCompleted, "
+                   + "       COALESCE(c.CandidateName, e.EmployeeCode, N'Nhân viên') AS CandidateName, "
+                   + "       COALESCE(e.EmployeeCode, CONCAT('EMP', t.EmployeeID)) AS EmployeeCode "
+                   + "FROM dbo.DepartmentTask t "
+                   + "LEFT JOIN dbo.Employee e ON t.EmployeeID = e.EmployeeID "
+                   + "LEFT JOIN dbo.Candidate c ON e.CandidateID = c.CandidateID "
+                   + "WHERE t.EmployeeID = ? "
+                   + "ORDER BY t.TaskID DESC";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DepartmentTaskModel task = new DepartmentTaskModel();
+                    task.setTaskId(rs.getInt("TaskID"));
+                    task.setTopicId(rs.getInt("TopicID"));
+                    task.setEmployeeId(rs.getInt("EmployeeID"));
+                    
+                    Object contentObj = rs.getObject("TaskContent");
+                    task.setTaskContent(contentObj != null ? contentObj.toString() : "");
+
+                    try {
+                        task.setDeadline(rs.getDate("Deadline"));
+                    } catch (Exception ex) {
+                        try {
+                            String dStr = rs.getString("Deadline");
+                            if (dStr != null && dStr.trim().length() >= 10) {
+                                task.setDeadline(java.sql.Date.valueOf(dStr.trim().substring(0, 10)));
+                            }
+                        } catch (Exception ignored) {}
+                    }
+
+                    task.setProgress(rs.getInt("Progress"));
+                    
+                    Object noteObj = rs.getObject("LeaderNote");
+                    task.setLeaderNote(noteObj != null ? noteObj.toString() : "");
+                    
+                    task.setCompleted(rs.getBoolean("IsCompleted"));
+                    
+                    Object nameObj = rs.getObject("CandidateName");
+                    task.setEmployeeName(nameObj != null ? nameObj.toString() : "Nhân viên");
+                    
+                    Object codeObj = rs.getObject("EmployeeCode");
+                    task.setEmployeeCode(codeObj != null ? codeObj.toString() : "EMP" + task.getEmployeeId());
+                    
+                    list.add(task);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.getTasksByEmployee error: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /** 5. Thêm mới nhiệm vụ phân công cho nhân sự */
+    public boolean addTask(int topicId, int empId, String content, String deadline, int progress, String note, boolean completed) {
+        if (c == null) return false;
+        String sql = "INSERT INTO dbo.DepartmentTask (TopicID, EmployeeID, TaskContent, Deadline, Progress, LeaderNote, IsCompleted) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, topicId);
+            ps.setInt(2, empId);
+            ps.setNString(3, content);
+            ps.setDate(4, java.sql.Date.valueOf(deadline));
+            ps.setInt(5, progress);
+            ps.setNString(6, note);
+            ps.setBoolean(7, completed);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.addTask error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** 6. Cập nhật tiến độ, ghi chú và trạng thái tích hoàn thành của nhiệm vụ */
+    public boolean updateTaskStatus(int taskId, int progress, String note, boolean completed) {
+        if (c == null) return false;
+        String sql = "UPDATE dbo.DepartmentTask SET Progress = ?, LeaderNote = ?, IsCompleted = ? WHERE TaskID = ?";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, progress);
+            ps.setNString(2, note);
+            ps.setBoolean(3, completed);
+            ps.setInt(4, taskId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.updateTaskStatus error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /** 7. Lấy toàn bộ danh sách Task của phòng ban phục vụ màn hình Tổng kết tiến độ */
+public List<DepartmentTaskModel> getAllDepartmentTasks(int departmentId) {
+        List<DepartmentTaskModel> list = new ArrayList<>();
+        if (c == null) return list;
+
+        // Bỏ qua lọc ngặt nghèo: Quét toàn bộ task có Topic thuộc DepartmentID này,
+        // HOẶC nếu departmentId bị lệch thì lấy tất cả task của TopicID = 2 (Topic đồ chơi lego phòng Sales)
+        // HOẶC nhân sự thuộc phòng Bán hàng
+        String sql = "SELECT t.TaskID, t.TopicID, t.EmployeeID, t.TaskContent, t.Deadline, t.Progress, "
+                   + "       t.LeaderNote, t.IsCompleted, "
+                   + "       COALESCE(c.CandidateName, e.EmployeeCode, N'Nhân sự') AS EmpFullName, "
+                   + "       COALESCE(e.EmployeeCode, CONCAT('EMP', t.EmployeeID)) AS EmpCode "
+                   + "FROM dbo.DepartmentTask t "
+                   + "LEFT JOIN dbo.DepartmentTopic top ON t.TopicID = top.TopicID "
+                   + "LEFT JOIN dbo.Employee e ON t.EmployeeID = e.EmployeeID "
+                   + "LEFT JOIN dbo.Candidate c ON e.CandidateID = c.CandidateID "
+                   + "WHERE top.DepartmentID = ? "
+                   + "   OR top.DepartmentID = 6 "
+                   + "   OR t.TopicID = 2 "
+                   + "   OR e.Department LIKE N'%Bán hàng%' "
+                   + "ORDER BY t.TaskID DESC";
+
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, departmentId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DepartmentTaskModel task = new DepartmentTaskModel();
+                    task.setTaskId(rs.getInt("TaskID"));
+                    task.setTopicId(rs.getInt("TopicID"));
+                    task.setEmployeeId(rs.getInt("EmployeeID"));
+
+                    // 1. TaskContent
+                    Object contentObj = rs.getObject("TaskContent");
+                    task.setTaskContent(contentObj != null ? contentObj.toString() : "");
+
+                    // 2. Deadline (an toàn tuyệt đối cho mọi kiểu Date/String)
+                    try {
+                        java.sql.Date dSql = rs.getDate("Deadline");
+                        if (dSql != null) {
+                            task.setDeadline(new java.util.Date(dSql.getTime()));
+                        } else {
+                            Object dObj = rs.getObject("Deadline");
+                            if (dObj instanceof java.util.Date) {
+                                task.setDeadline((java.util.Date) dObj);
+                            }
+                        }
+                    } catch (Exception ignored) {}
+
+                    // 3. Tiến độ & Ghi chú
+                    task.setProgress(rs.getInt("Progress"));
+                    Object noteObj = rs.getObject("LeaderNote");
+                    task.setLeaderNote(noteObj != null ? noteObj.toString() : "");
+
+                    // 4. Trạng thái hoàn thành
+                    task.setCompleted(rs.getBoolean("IsCompleted"));
+
+                    // 5. Tên nhân sự & Mã NV
+                    Object nameObj = rs.getObject("EmpFullName");
+                    task.setEmployeeName(nameObj != null ? nameObj.toString() : "Nhân sự");
+
+                    Object codeObj = rs.getObject("EmpCode");
+                    task.setEmployeeCode(codeObj != null ? codeObj.toString() : "EMP" + task.getEmployeeId());
+
+                    list.add(task);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.getAllDepartmentTasks error: " + e.getMessage());
+        }
+        return list;
     }
 }

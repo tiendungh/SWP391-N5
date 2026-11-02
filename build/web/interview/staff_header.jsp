@@ -7,6 +7,40 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>${empty pageTitle ? 'Nhân sự' : pageTitle} - HR Tools</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/interview.css">
+        <style>
+            .leader-menu-group {
+                margin: 10px 0;
+                padding-top: 10px;
+                border-top: 1px solid rgba(255, 255, 255, 0.15);
+            }
+            .leader-menu-title {
+                display: block;
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: #93c5fd;
+                font-weight: 700;
+            }
+            .leader-sub-nav a {
+                padding-left: 20px !important;
+                font-size: 0.88rem !important;
+            }
+            /* Style sáng tạo bổ sung cho Dropdown chọn 16 phòng của Admin trên Taskbar */
+            .leader-dept-select {
+                width: calc(100% - 24px);
+                margin: 4px 12px 8px 12px;
+                background: #1e293b;
+                color: #38bdf8;
+                border: 1px solid #0284c7;
+                padding: 6px 8px;
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                outline: none;
+            }
+        </style>
     </head>
     <body class="iv-body">
         <div class="iv-shell">
@@ -32,6 +66,74 @@
                                class="${currentNav == 'deptOrg' ? 'active' : ''}">🏛️ Tổ chức phòng ban</a>
                         </c:if>
                     </c:if>
+
+                    <%-- ========================================================================= --%>
+                    <%-- THÊM MỚI: TASKBAR "QUẢN LÝ PHÒNG" VÀ 3 TASKBAR NHỎ DÀNH RIÊNG CHO TRƯỞNG NHÓM --%>
+                    <%-- ========================================================================= --%>
+                    <%
+                        dal.DepartmentDAO headerDeptDao = new dal.DepartmentDAO();
+                        Object curEmpIdObj = session.getAttribute("employeeId");
+                        if (curEmpIdObj == null) curEmpIdObj = session.getAttribute("staffId");
+                        if (curEmpIdObj == null) curEmpIdObj = session.getAttribute("userId");
+                        
+                        // Kiểm tra quyền Admin/Manager để kích hoạt bộ chuyển 16 phòng
+                        String rName = (String) session.getAttribute("roleName");
+                        String uRole = (String) session.getAttribute("userRole");
+                        boolean isSidebarMgr = "Manager".equalsIgnoreCase(rName) || "Admin".equalsIgnoreCase(rName)
+                                            || "Manager".equalsIgnoreCase(uRole) || "Admin".equalsIgnoreCase(uRole);
+                        request.setAttribute("isSidebarManager", isSidebarMgr);
+
+                        if (isSidebarMgr) {
+                            request.setAttribute("sidebarAllDepts", headerDeptDao.getAllDepartmentsWithCount());
+                        } else if (curEmpIdObj != null) {
+                            try {
+                                int leaderEmpId = Integer.parseInt(curEmpIdObj.toString());
+                                model.DepartmentModel myLeaderDept = headerDeptDao.getDepartmentByLeaderId(leaderEmpId);
+                                if (myLeaderDept != null) {
+                                    request.setAttribute("myLeaderDept", myLeaderDept);
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    %>
+
+                    <%-- TRƯỜNG HỢP 1: ADMIN / MANAGER -> CÓ DROPDOWN CHUYỂN ĐỔI 16 PHÒNG BAN --%>
+                    <c:if test="${isSidebarManager}">
+                        <div class="leader-menu-group">
+                            <span class="leader-menu-title">🏢 Quản lý phòng:</span>
+                            <select class="leader-dept-select" onchange="onSidebarSwitchDept(this.value)">
+                                <c:forEach var="d" items="${sidebarAllDepts}">
+                                    <option value="${d.departmentId}" ${leaderDept.departmentId == d.departmentId ? 'selected' : ''}>
+                                        ${d.departmentName} (${d.employeeCount} NV)
+                                    </option>
+                                </c:forEach>
+                            </select>
+                            <div class="leader-sub-nav">
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                   class="${currentNav == 'leaderMembers' ? 'active' : ''}">👥 Quản lý nhân viên</a>
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                   class="${currentNav == 'leaderTopics' ? 'active' : ''}">📋 Chủ đề + Phân công</a>
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                   class="${currentNav == 'leaderProgress' ? 'active' : ''}">📊 Tổng kết tiến độ</a>
+                            </div>
+                        </div>
+                    </c:if>
+
+                    <%-- TRƯỜNG HỢP 2: EMPLOYEE ĐƯỢC CHỈ ĐỊNH LÀM LEADER 1 PHÒNG CỤ THỂ --%>
+                    <c:if test="${not isSidebarManager && not empty myLeaderDept}">
+                        <div class="leader-menu-group">
+                            <span class="leader-menu-title">🏢 Quản lý phòng: ${myLeaderDept.departmentName}</span>
+                            <div class="leader-sub-nav">
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=members"
+                                   class="${currentNav == 'leaderMembers' ? 'active' : ''}">👥 Quản lý nhân viên</a>
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=topics"
+                                   class="${currentNav == 'leaderTopics' ? 'active' : ''}">📋 Chủ đề + Phân công</a>
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=progress"
+                                   class="${currentNav == 'leaderProgress' ? 'active' : ''}">📊 Tổng kết tiến độ</a>
+                            </div>
+                        </div>
+                    </c:if>
+                    <%-- ========================================================================= --%>
+
                     <a href="${pageContext.request.contextPath}/my-profile-documents"
                        class="${currentNav == 'myProfile' ? 'active' : ''}">👤 Hồ sơ của tôi</a>
                 </nav>
@@ -43,3 +145,11 @@
                 </div>
             </aside>
             <main class="iv-main">
+
+            <script>
+                function onSidebarSwitchDept(deptId) {
+                    var currentUrl = new URL(window.location.href);
+                    var currentTab = currentUrl.searchParams.get("tab") || "members";
+                    window.location.href = '${pageContext.request.contextPath}/leader-room?tab=' + currentTab + '&deptId=' + deptId;
+                }
+            </script>
