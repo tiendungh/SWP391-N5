@@ -60,7 +60,7 @@
                            class="${currentNav == 'barem' ? 'active' : ''}">📋 Barem đánh giá</a>
                         <a href="${pageContext.request.contextPath}/employee-profiles"
                            class="${currentNav == 'employeeProfiles' ? 'active' : ''}">🗂️ Hồ sơ nhân viên</a>
-                        <%-- THÊM MỚI: Taskbar Tổ chức phòng ban & Gán nhân sự dành cho Manager --%>
+                        <%-- Taskbar Tổ chức phòng ban & Gán nhân sự dành cho Manager --%>
                         <c:if test="${sessionScope.roleName == 'Manager' || sessionScope.userRole == 'Manager' || sessionScope.userRole == 'Admin'}">
                             <a href="${pageContext.request.contextPath}/department-manage"
                                class="${currentNav == 'deptOrg' ? 'active' : ''}">🏛️ Tổ chức phòng ban</a>
@@ -68,7 +68,7 @@
                     </c:if>
 
                     <%-- ========================================================================= --%>
-                    <%-- THÊM MỚI: TASKBAR "QUẢN LÝ PHÒNG" VÀ 3 TASKBAR NHỎ DÀNH RIÊNG CHO TRƯỞNG NHÓM --%>
+                    <%-- TASKBAR "QUẢN LÝ PHÒNG" VÀ CÁC TASKBAR CON --%>
                     <%-- ========================================================================= --%>
                     <%
                         dal.DepartmentDAO headerDeptDao = new dal.DepartmentDAO();
@@ -114,6 +114,9 @@
                                    class="${currentNav == 'leaderTopics' ? 'active' : ''}">📋 Chủ đề + Phân công</a>
                                 <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
                                    class="${currentNav == 'leaderProgress' ? 'active' : ''}">📊 Tổng kết tiến độ</a>
+                                <%-- THÊM MỚI: Taskbar Kho lưu trữ cho Admin / Manager --%>
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=archive&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                   class="${currentNav == 'leaderArchive' ? 'active' : ''}">🗄️ Kho lưu trữ</a>
                             </div>
                         </div>
                     </c:if>
@@ -127,6 +130,20 @@
                                    class="${currentNav == 'leaderMembers' ? 'active' : ''}">👥 Quản lý nhân viên</a>
                                 <a href="${pageContext.request.contextPath}/leader-room?tab=topics"
                                    class="${currentNav == 'leaderTopics' ? 'active' : ''}">📋 Chủ đề + Phân công</a>
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=progress"
+                                   class="${currentNav == 'leaderProgress' ? 'active' : ''}">📊 Tổng kết tiến độ</a>
+                                <%-- THÊM MỚI: Taskbar Kho lưu trữ cho Trưởng nhóm --%>
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=archive"
+                                   class="${currentNav == 'leaderArchive' ? 'active' : ''}">🗄️ Kho lưu trữ</a>
+                            </div>
+                        </div>
+                    </c:if>
+
+                    <%-- TRƯỜNG HỢP 3: EMPLOYEE BÌNH THƯỜNG -> CHỈ XEM TỔNG KẾT TIẾN ĐỘ PHÒNG MÌNH --%>
+                    <c:if test="${not isSidebarManager && empty myLeaderDept}">
+                        <div class="leader-menu-group">
+                            <span class="leader-menu-title">🏢 Phòng ban của tôi</span>
+                            <div class="leader-sub-nav">
                                 <a href="${pageContext.request.contextPath}/leader-room?tab=progress"
                                    class="${currentNav == 'leaderProgress' ? 'active' : ''}">📊 Tổng kết tiến độ</a>
                             </div>

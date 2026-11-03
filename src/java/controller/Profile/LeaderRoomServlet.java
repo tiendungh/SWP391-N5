@@ -34,7 +34,7 @@
 //        return null;
 //    }
 //
-//    // THÊM MỚI: Kiểm tra xem tài khoản có quyền Admin hoặc Manager không
+//    // Kiểm tra xem tài khoản có quyền Admin hoặc Manager không
 //    private boolean isAdminOrManager(HttpServletRequest request) {
 //        HttpSession session = request.getSession(false);
 //        if (session == null) return false;
@@ -53,7 +53,7 @@
 //            return;
 //        }
 //
-//        // THÊM MỚI: Lấy danh sách toàn bộ phòng ban và cờ quyền quản trị
+//        // Lấy danh sách toàn bộ phòng ban và cờ quyền quản trị
 //        boolean isManager = isAdminOrManager(request);
 //        request.setAttribute("isManagerRole", isManager);
 //        List allDepts = dao.getAllDepartmentsWithCount();
@@ -62,8 +62,8 @@
 //        DepartmentModel leaderDept = null;
 //        String reqDeptId = request.getParameter("deptId");
 //
-//        // THÊM MỚI: Nếu là Admin/Manager và có truyền tham số deptId trên URL thì ưu tiên lấy phòng đó
-//        if (isManager && reqDeptId != null && !reqDeptId.trim().isEmpty()) {
+//        // 1. Bất kỳ ai (Manager hoặc Leader) nếu có deptId trên URL thì ưu tiên lấy đúng phòng đó
+//        if (reqDeptId != null && !reqDeptId.trim().isEmpty()) {
 //            try {
 //                int dId = Integer.parseInt(reqDeptId.trim());
 //                if (allDepts != null) {
@@ -71,6 +71,7 @@
 //                        DepartmentModel dm = (DepartmentModel) obj;
 //                        if (dm.getDepartmentId() == dId) {
 //                            leaderDept = dm;
+//                            request.getSession().setAttribute("currentViewDeptId", dId);
 //                            break;
 //                        }
 //                    }
@@ -78,28 +79,68 @@
 //            } catch (Exception ignored) {}
 //        }
 //
-//        // Nếu không có deptId hoặc là nhân viên thông thường: lấy phòng ban mà người này làm Leader
+//        // 2. Nếu URL không có deptId, kiểm tra Session trước đó đã từng chọn xem phòng nào không
+//        if (leaderDept == null) {
+//            Object sessDeptId = request.getSession().getAttribute("currentViewDeptId");
+//            if (sessDeptId != null) {
+//                try {
+//                    int sId = Integer.parseInt(sessDeptId.toString());
+//                    if (allDepts != null) {
+//                        for (Object obj : allDepts) {
+//                            DepartmentModel dm = (DepartmentModel) obj;
+//                            if (dm.getDepartmentId() == sId) {
+//                                leaderDept = dm;
+//                                break;
+//                            }
+//                        }
+//                    }
+//                } catch (Exception ignored) {}
+//            }
+//        }
+//
+//        // 3. Nếu vẫn chưa có: lấy phòng ban mà người này làm Leader qua DAO
 //        if (leaderDept == null) {
 //            leaderDept = dao.getDepartmentByLeaderId(empId);
 //        }
 //
-//        // THÊM MỚI: Nếu là Admin/Manager nhưng bản thân chưa được gán làm Leader phòng nào, mặc định hiển thị phòng đầu tiên
+//        // 4. Nếu getDepartmentByLeaderId vẫn null (ví dụ: Employee bình thường), tìm theo cột Department của Employee
+//        if (leaderDept == null) {
+//            try {
+//                Map<String, Object> empInfo = dao.getEmployeeDetailById(empId);
+//                if (empInfo != null && empInfo.get("department") != null) {
+//                    String dName = empInfo.get("department").toString();
+//                    leaderDept = dao.getDepartmentByName(dName);
+//                }
+//            } catch (Exception ignored) {}
+//        }
+//
+//        // 5. Nếu là Admin/Manager nhưng bản thân chưa được gán phòng nào, mặc định phòng đầu tiên
 //        if (leaderDept == null && isManager && allDepts != null && !allDepts.isEmpty()) {
 //            leaderDept = (DepartmentModel) allDepts.get(0);
 //        }
 //
 //        if (leaderDept == null) {
-//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn chưa được bổ nhiệm làm Trưởng nhóm phòng ban nào.");
+//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn chưa được liên kết với phòng ban nào.");
 //            return;
 //        }
 //
+//        // Lưu lại deptId chuẩn vào session để các tab khác tự nhớ
+//        request.getSession().setAttribute("currentViewDeptId", leaderDept.getDepartmentId());
 //        request.setAttribute("leaderDept", leaderDept);
+//
+//        // Quyền chỉnh sửa chỉ dành cho Admin, Manager hoặc Trưởng phòng thực tế
+//        boolean canEdit = isManager || (leaderDept.getManagerId() != null && leaderDept.getManagerId().equals(empId));
+//        request.setAttribute("canEdit", canEdit);
+//
 //        String tab = request.getParameter("tab");
-//        if (tab == null || tab.isEmpty()) tab = "members";
+//        // Nếu không truyền tab: Trưởng phòng/Admin vào 'members', Employee bình thường tự động vào xem 'progress'
+//        if (tab == null || tab.isEmpty()) {
+//            tab = canEdit ? "members" : "progress";
+//        }
 //        request.setAttribute("activeTab", tab);
 //
 //        if ("members".equals(tab)) {
-//            // Màn hình 1: Quản lý nhân viên (Giao diện y hệt ảnh 1)
+//            // Màn hình 1: Quản lý nhân viên
 //            List members = dao.getEmployeesByDepartment(leaderDept.getDepartmentName());
 //            request.setAttribute("members", members);
 //            request.getRequestDispatcher("/profile/leader_members.jsp").forward(request, response);
@@ -121,27 +162,33 @@
 //
 //            request.getRequestDispatcher("/profile/leader_topics.jsp").forward(request, response);
 //        } else if ("progress".equals(tab)) {
-//            // Màn hình 3: Tổng kết tiến độ
+//            // Màn hình 3: Tổng kết tiến độ (Cả Trưởng phòng, Admin và Employee đều xem được)
+//            System.out.println("[LeaderRoomServlet] Querying all tasks for Dept: " + leaderDept.getDepartmentName() + " (ID=" + leaderDept.getDepartmentId() + ")");
 //            List<DepartmentTaskModel> allTasks = dao.getAllDepartmentTasks(leaderDept.getDepartmentId());
 //            request.setAttribute("allTasks", allTasks);
 //
-//            // Thống kê chuẩn xác tiến độ toàn phòng
 //            int total = (allTasks != null) ? allTasks.size() : 0;
 //            int completed = 0;
 //            int totalPercent = 0;
 //
 //            if (allTasks != null) {
 //                for (DepartmentTaskModel t : allTasks) {
-//                    boolean isDone = t.isCompleted() || t.getProgress() >= 100;
-//                    if (isDone) {
+//                    int p = t.getProgress();
+//                    // Giới hạn giá trị an toàn trong khoảng 0 - 100
+//                    if (p < 0) p = 0;
+//                    if (p > 100) p = 100;
+//
+//                    // Cộng trực tiếp % thực tế của từng task vào tổng %
+//                    totalPercent += p;
+//
+//                    // Chỉ tính là 'Đã hoàn thành' khi tiến độ đạt 100%
+//                    if (p >= 100) {
 //                        completed++;
 //                    }
-//                    // Nếu đã hoàn thành tính 100%, nếu đang làm thì cộng % tiến độ hiện tại
-//                    totalPercent += (isDone ? 100 : t.getProgress());
 //                }
 //            }
 //
-//            // Tính % tiến độ trung bình toàn phòng làm tròn chuẩn
+//            // Tính % tiến độ trung bình chuẩn xác toàn phòng
 //            int avgPercent = total > 0 ? Math.round((float) totalPercent / total) : 0;
 //
 //            request.setAttribute("totalTasks", total);
@@ -163,11 +210,13 @@
 //            return;
 //        }
 //
-//        // THÊM MỚI: Xác định đúng phòng ban đang thao tác (hỗ trợ cả Admin chọn phòng qua deptId)
+//        // Xác định đúng phòng ban đang thao tác (hỗ trợ đọc deptId từ form submit)
 //        boolean isManager = isAdminOrManager(request);
 //        String reqDeptId = request.getParameter("deptId");
 //        DepartmentModel leaderDept = null;
-//        if (isManager && reqDeptId != null && !reqDeptId.trim().isEmpty()) {
+//        
+//        // Đọc deptId submit từ form cho cả Leader và Manager
+//        if (reqDeptId != null && !reqDeptId.trim().isEmpty()) {
 //            try {
 //                int dId = Integer.parseInt(reqDeptId.trim());
 //                List allDepts = dao.getAllDepartmentsWithCount();
@@ -182,12 +231,20 @@
 //                }
 //            } catch (Exception ignored) {}
 //        }
+//        
 //        if (leaderDept == null) {
 //            leaderDept = dao.getDepartmentByLeaderId(empId);
 //        }
 //
 //        if (leaderDept == null) {
 //            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+//            return;
+//        }
+//
+//        // Kiểm tra quyền chỉnh sửa ở doPost: Chỉ Manager, Admin hoặc chính Trưởng phòng mới được thêm/sửa
+//        boolean canEdit = isManager || (leaderDept.getManagerId() != null && leaderDept.getManagerId().equals(empId));
+//        if (!canEdit) {
+//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền thực hiện thao tác này.");
 //            return;
 //        }
 //
@@ -199,7 +256,6 @@
 //            String title = request.getParameter("topicTitle");
 //            String desc = request.getParameter("description");
 //            dao.addTopic(leaderDept.getDepartmentId(), title, desc, empId);
-//            // THÊM: Gửi param msg=topic_created thông báo tạo chủ đề thành công
 //            response.sendRedirect(request.getContextPath() + "/leader-room?tab=topics" + deptParamUrl + "&msg=topic_created");
 //        } else if ("assignTask".equals(action)) {
 //            int topicId = Integer.parseInt(request.getParameter("topicId"));
@@ -211,12 +267,9 @@
 //                progress = Integer.parseInt(request.getParameter("progress"));
 //            } catch (Exception ignored) {}
 //            String note = request.getParameter("leaderNote");
-//            boolean completed = "on".equals(request.getParameter("isCompleted")) 
-//                             || "true".equals(request.getParameter("isCompleted"))
-//                             || progress >= 100;
+//            boolean completed = progress >= 100;
 //
 //            dao.addTask(topicId, targetEmpId, content, deadline, progress, note, completed);
-//            // THÊM: Gửi param msg=assigned để leader_assign_task.jsp hiện banner thông báo xanh
 //            response.sendRedirect(request.getContextPath() + "/leader-room?tab=topics&empId=" + targetEmpId + deptParamUrl + "&msg=assigned");
 //        } else if ("updateTask".equals(action)) {
 //            int taskId = Integer.parseInt(request.getParameter("taskId"));
@@ -226,18 +279,13 @@
 //                progress = Integer.parseInt(request.getParameter("progress"));
 //            } catch (Exception ignored) {}
 //            String note = request.getParameter("leaderNote");
-//            boolean completed = "on".equals(request.getParameter("isCompleted")) 
-//                             || "true".equals(request.getParameter("isCompleted"))
-//                             || progress >= 100;
+//            boolean completed = progress >= 100;
 //
 //            dao.updateTaskStatus(taskId, progress, note, completed);
-//            // THÊM: Gửi param msg=updated để leader_assign_task.jsp hiện banner thông báo cập nhật thành công
 //            response.sendRedirect(request.getContextPath() + "/leader-room?tab=topics&empId=" + targetEmpId + deptParamUrl + "&msg=updated");
 //        }
 //    }
 //}
-
-
 
 package controller.Profile;
 
@@ -251,6 +299,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import model.DepartmentArchiveModel;
 import model.DepartmentModel;
 import model.DepartmentTaskModel;
 import model.DepartmentTopicModel;
@@ -275,7 +324,7 @@ public class LeaderRoomServlet extends HttpServlet {
         return null;
     }
 
-    // THÊM MỚI: Kiểm tra xem tài khoản có quyền Admin hoặc Manager không
+    // Kiểm tra xem tài khoản có quyền Admin hoặc Manager không
     private boolean isAdminOrManager(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) return false;
@@ -303,7 +352,7 @@ public class LeaderRoomServlet extends HttpServlet {
         DepartmentModel leaderDept = null;
         String reqDeptId = request.getParameter("deptId");
 
-        // THÊM MỚI 1: Bất kỳ ai (Manager hoặc Leader) nếu có deptId trên URL thì ưu tiên lấy đúng phòng đó
+        // 1. Bất kỳ ai (Manager hoặc Leader) nếu có deptId trên URL thì ưu tiên lấy đúng phòng đó
         if (reqDeptId != null && !reqDeptId.trim().isEmpty()) {
             try {
                 int dId = Integer.parseInt(reqDeptId.trim());
@@ -320,7 +369,7 @@ public class LeaderRoomServlet extends HttpServlet {
             } catch (Exception ignored) {}
         }
 
-        // THÊM MỚI 2: Nếu URL không có deptId, kiểm tra Session trước đó đã từng chọn xem phòng nào không
+        // 2. Nếu URL không có deptId, kiểm tra Session trước đó đã từng chọn xem phòng nào không
         if (leaderDept == null) {
             Object sessDeptId = request.getSession().getAttribute("currentViewDeptId");
             if (sessDeptId != null) {
@@ -344,7 +393,7 @@ public class LeaderRoomServlet extends HttpServlet {
             leaderDept = dao.getDepartmentByLeaderId(empId);
         }
 
-        // THÊM MỚI 3: Nếu getDepartmentByLeaderId vẫn null, tìm theo cột Department của Employee
+        // 4. Nếu getDepartmentByLeaderId vẫn null (ví dụ: Employee bình thường), tìm theo cột Department của Employee
         if (leaderDept == null) {
             try {
                 Map<String, Object> empInfo = dao.getEmployeeDetailById(empId);
@@ -355,13 +404,13 @@ public class LeaderRoomServlet extends HttpServlet {
             } catch (Exception ignored) {}
         }
 
-        // 4. Nếu là Admin/Manager nhưng bản thân chưa được gán phòng nào, mặc định phòng đầu tiên
+        // 5. Nếu là Admin/Manager nhưng bản thân chưa được gán phòng nào, mặc định phòng đầu tiên
         if (leaderDept == null && isManager && allDepts != null && !allDepts.isEmpty()) {
             leaderDept = (DepartmentModel) allDepts.get(0);
         }
 
         if (leaderDept == null) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn chưa được bổ nhiệm làm Trưởng nhóm phòng ban nào.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn chưa được liên kết với phòng ban nào.");
             return;
         }
 
@@ -369,12 +418,19 @@ public class LeaderRoomServlet extends HttpServlet {
         request.getSession().setAttribute("currentViewDeptId", leaderDept.getDepartmentId());
         request.setAttribute("leaderDept", leaderDept);
 
+        // Quyền chỉnh sửa chỉ dành cho Admin, Manager hoặc Trưởng phòng thực tế
+        boolean canEdit = isManager || (leaderDept.getManagerId() != null && leaderDept.getManagerId().equals(empId));
+        request.setAttribute("canEdit", canEdit);
+
         String tab = request.getParameter("tab");
-        if (tab == null || tab.isEmpty()) tab = "members";
+        // Nếu không truyền tab: Trưởng phòng/Admin vào 'members', Employee bình thường tự động vào xem 'progress'
+        if (tab == null || tab.isEmpty()) {
+            tab = canEdit ? "members" : "progress";
+        }
         request.setAttribute("activeTab", tab);
 
         if ("members".equals(tab)) {
-            // Màn hình 1: Quản lý nhân viên (Giao diện y hệt ảnh 1)
+            // Màn hình 1: Quản lý nhân viên
             List members = dao.getEmployeesByDepartment(leaderDept.getDepartmentName());
             request.setAttribute("members", members);
             request.getRequestDispatcher("/profile/leader_members.jsp").forward(request, response);
@@ -396,28 +452,33 @@ public class LeaderRoomServlet extends HttpServlet {
 
             request.getRequestDispatcher("/profile/leader_topics.jsp").forward(request, response);
         } else if ("progress".equals(tab)) {
-            // Màn hình 3: Tổng kết tiến độ
+            // Màn hình 3: Tổng kết tiến độ (Cả Trưởng phòng, Admin và Employee đều xem được)
             System.out.println("[LeaderRoomServlet] Querying all tasks for Dept: " + leaderDept.getDepartmentName() + " (ID=" + leaderDept.getDepartmentId() + ")");
             List<DepartmentTaskModel> allTasks = dao.getAllDepartmentTasks(leaderDept.getDepartmentId());
             request.setAttribute("allTasks", allTasks);
 
-            // Thống kê chuẩn xác tiến độ toàn phòng
             int total = (allTasks != null) ? allTasks.size() : 0;
             int completed = 0;
             int totalPercent = 0;
 
             if (allTasks != null) {
                 for (DepartmentTaskModel t : allTasks) {
-                    boolean isDone = t.isCompleted() || t.getProgress() >= 100;
-                    if (isDone) {
+                    int p = t.getProgress();
+                    // Giới hạn giá trị an toàn trong khoảng 0 - 100
+                    if (p < 0) p = 0;
+                    if (p > 100) p = 100;
+
+                    // Cộng trực tiếp % thực tế của từng task vào tổng %
+                    totalPercent += p;
+
+                    // Chỉ tính là 'Đã hoàn thành' khi tiến độ đạt 100%
+                    if (p >= 100) {
                         completed++;
                     }
-                    // Nếu đã hoàn thành tính 100%, nếu đang làm thì cộng % tiến độ hiện tại
-                    totalPercent += (isDone ? 100 : t.getProgress());
                 }
             }
 
-            // Tính % tiến độ trung bình toàn phòng làm tròn chuẩn
+            // Tính % tiến độ trung bình chuẩn xác toàn phòng
             int avgPercent = total > 0 ? Math.round((float) totalPercent / total) : 0;
 
             request.setAttribute("totalTasks", total);
@@ -426,6 +487,28 @@ public class LeaderRoomServlet extends HttpServlet {
             request.setAttribute("avgPercent", avgPercent);
 
             request.getRequestDispatcher("/profile/leader_progress.jsp").forward(request, response);
+        } else if ("archive".equals(tab)) {
+            // THÊM MỚI: Màn hình Kho lưu trữ (chỉ dành cho Trưởng phòng hoặc Admin/Manager)
+            if (!canEdit) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập kho lưu trữ.");
+                return;
+            }
+
+            String archiveIdParam = request.getParameter("archiveId");
+            if (archiveIdParam != null && !archiveIdParam.trim().isEmpty()) {
+                try {
+                    int archId = Integer.parseInt(archiveIdParam.trim());
+                    DepartmentArchiveModel archiveDetail = dao.getArchiveDetailById(archId);
+                    request.setAttribute("archiveDetail", archiveDetail);
+                    request.getRequestDispatcher("/profile/leader_archive_detail.jsp").forward(request, response);
+                    return;
+                } catch (Exception ignored) {}
+            }
+
+            // Mặc định lấy danh sách các dự án đã lưu của phòng ban hiện tại
+            List<DepartmentArchiveModel> archiveList = dao.getArchivesByDepartment(leaderDept.getDepartmentId());
+            request.setAttribute("archiveList", archiveList);
+            request.getRequestDispatcher("/profile/leader_archive.jsp").forward(request, response);
         }
     }
 
@@ -444,7 +527,7 @@ public class LeaderRoomServlet extends HttpServlet {
         String reqDeptId = request.getParameter("deptId");
         DepartmentModel leaderDept = null;
         
-        // THÊM MỚI: Đọc deptId submit từ form cho cả Leader và Manager
+        // Đọc deptId submit từ form cho cả Leader và Manager
         if (reqDeptId != null && !reqDeptId.trim().isEmpty()) {
             try {
                 int dId = Integer.parseInt(reqDeptId.trim());
@@ -470,6 +553,13 @@ public class LeaderRoomServlet extends HttpServlet {
             return;
         }
 
+        // Kiểm tra quyền chỉnh sửa ở doPost: Chỉ Manager, Admin hoặc chính Trưởng phòng mới được thêm/sửa
+        boolean canEdit = isManager || (leaderDept.getManagerId() != null && leaderDept.getManagerId().equals(empId));
+        if (!canEdit) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền thực hiện thao tác này.");
+            return;
+        }
+
         // Chuỗi query param lưu lại phòng ban hiện tại khi redirect
         String deptParamUrl = "&deptId=" + leaderDept.getDepartmentId();
 
@@ -489,9 +579,7 @@ public class LeaderRoomServlet extends HttpServlet {
                 progress = Integer.parseInt(request.getParameter("progress"));
             } catch (Exception ignored) {}
             String note = request.getParameter("leaderNote");
-            boolean completed = "on".equals(request.getParameter("isCompleted")) 
-                             || "true".equals(request.getParameter("isCompleted"))
-                             || progress >= 100;
+            boolean completed = progress >= 100;
 
             dao.addTask(topicId, targetEmpId, content, deadline, progress, note, completed);
             response.sendRedirect(request.getContextPath() + "/leader-room?tab=topics&empId=" + targetEmpId + deptParamUrl + "&msg=assigned");
@@ -503,12 +591,22 @@ public class LeaderRoomServlet extends HttpServlet {
                 progress = Integer.parseInt(request.getParameter("progress"));
             } catch (Exception ignored) {}
             String note = request.getParameter("leaderNote");
-            boolean completed = "on".equals(request.getParameter("isCompleted")) 
-                             || "true".equals(request.getParameter("isCompleted"))
-                             || progress >= 100;
+            boolean completed = progress >= 100;
 
             dao.updateTaskStatus(taskId, progress, note, completed);
             response.sendRedirect(request.getContextPath() + "/leader-room?tab=topics&empId=" + targetEmpId + deptParamUrl + "&msg=updated");
+        } else if ("saveArchive".equals(action)) {
+            // THÊM MỚI: Lưu toàn bộ tiến độ dự án hiện tại vào Kho lưu trữ của phòng ban
+            String projectName = request.getParameter("projectName");
+            if (projectName == null || projectName.trim().isEmpty()) {
+                projectName = "Dự án hoàn thành ngày " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date());
+            }
+            dao.archiveCurrentProject(leaderDept.getDepartmentId(), projectName.trim(), empId);
+            response.sendRedirect(request.getContextPath() + "/leader-room?tab=archive" + deptParamUrl + "&msg=archived");
+        } else if ("resetProject".equals(action)) {
+            // THÊM MỚI: Reset trắng trơn Chủ đề & Nhiệm vụ của phòng ban khi bấm "Rồi"
+            dao.resetCurrentDepartmentTopicsAndTasks(leaderDept.getDepartmentId());
+            response.sendRedirect(request.getContextPath() + "/leader-room?tab=topics" + deptParamUrl + "&msg=reset_ok");
         }
     }
 }

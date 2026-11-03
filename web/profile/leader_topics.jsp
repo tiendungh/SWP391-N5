@@ -35,10 +35,30 @@
         cursor: pointer;
         outline: none;
     }
+
+    /* Style cho Modal xác nhận Reset */
+    .reset-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .reset-modal-box {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 24px 28px;
+        width: 380px;
+        max-width: 90%;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
 </style>
 
 <div class="room-shell">
-    <%-- THÊM MỚI: TIÊU ĐỀ PHÒNG BAN & BỘ CHỌN CHUYỂN 16 PHÒNG DÀNH CHO ADMIN --%>
+    <%-- TIÊU ĐỀ PHÒNG BAN & BỘ CHỌN CHUYỂN 16 PHÒNG DÀNH CHO ADMIN --%>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 12px;">
         <div>
             <h1 style="margin: 0; font-size: 1.6rem; color: #0f172a;">🏢 Phòng: ${leaderDept.departmentName}</h1>
@@ -65,30 +85,56 @@
         </div>
     </div>
 
-    <!-- 3 TASKBAR NHỎ ĐIỀU HƯỚNG (BỔ SUNG deptId ĐỂ GIỮ ĐÚNG PHÒNG ĐANG CHỌN) -->
+    <!-- 4 TASKBARS ĐIỀU HƯỚNG: BỔ SUNG "KHO LƯU TRỮ" DÀNH RIÊNG CHO TRƯỞNG PHÒNG VÀ ADMIN -->
     <div class="room-tabs">
         <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${leaderDept.departmentId}" class="room-tab-item">👥 Quản lý nhân viên</a>
         <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${leaderDept.departmentId}" class="room-tab-item active">📋 Chủ đề + Phân công</a>
         <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${leaderDept.departmentId}" class="room-tab-item">📊 Tổng kết tiến độ</a>
+        <c:if test="${canEdit}">
+            <a href="${pageContext.request.contextPath}/leader-room?tab=archive&deptId=${leaderDept.departmentId}" class="room-tab-item">🗄️ Kho lưu trữ</a>
+        </c:if>
     </div>
 
-    <!-- KHUNG SÁNG TẠO: TẠO CHỦ ĐỀ GIAO VIỆC -->
+    <%-- THÔNG BÁO FLASH MESSAGE --%>
+    <c:if test="${param.msg == 'reset_ok'}">
+        <div style="background: #dcfce7; border: 1.5px solid #86efac; color: #166534; padding: 12px 18px; border-radius: 8px; margin-bottom: 18px; font-weight: 600;">
+            ✨ Đã làm mới (Reset) toàn bộ chủ đề và phân công dự án thành công!
+        </div>
+    </c:if>
+    <c:if test="${param.msg == 'topic_created'}">
+        <div style="background: #e0f2fe; border: 1.5px solid #7dd3fc; color: #0369a1; padding: 12px 18px; border-radius: 8px; margin-bottom: 18px; font-weight: 600;">
+            💡 Đã khởi tạo chủ đề mới cho phòng ban thành công!
+        </div>
+    </c:if>
+
+    <!-- KHUNG SÁNG TẠO: TẠO CHỦ ĐỀ GIAO VIỆC & NÚT RESET DỰ ÁN -->
     <div class="topic-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h3 style="margin: 0; color: #1e3a8a;">💡 Khởi tạo Chủ đề / Dự án phòng ban</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <h3 style="margin: 0; color: #1e3a8a;">💡 Khởi tạo Chủ đề / Dự án phòng ban</h3>
+                <!-- NÚT ICON RESET DỰ ÁN -->
+                <c:if test="${canEdit}">
+                    <button type="button" onclick="openResetModal()" style="display: inline-flex; align-items: center; gap: 5px; background: #fff1f2; border: 1.5px solid #fecdd3; color: #e11d48; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                        🔄 Reset
+                    </button>
+                </c:if>
+            </div>
             <span style="font-size: 0.85rem; color: #64748b;">Chủ đề dùng để nhóm các đầu việc phân công cho nhân sự</span>
         </div>
-        <form method="post" action="${pageContext.request.contextPath}/leader-room">
-            <input type="hidden" name="action" value="createTopic"/>
-            <input type="hidden" name="deptId" value="${leaderDept.departmentId}"/>
-            <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 12px;">
-                <input type="text" name="topicTitle" placeholder="Tên chủ đề (Ví dụ: Chiến dịch Q4, Tối ưu SEO...)" required style="padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none;"/>
-                <input type="text" name="description" placeholder="Mục tiêu hoặc hướng dẫn triển khai..." style="padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none;"/>
-                <button type="submit" class="iv-btn" style="background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; cursor: pointer;">
-                    ➕ Thêm chủ đề
-                </button>
-            </div>
-        </form>
+
+        <c:if test="${canEdit}">
+            <form method="post" action="${pageContext.request.contextPath}/leader-room">
+                <input type="hidden" name="action" value="createTopic"/>
+                <input type="hidden" name="deptId" value="${leaderDept.departmentId}"/>
+                <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 12px;">
+                    <input type="text" name="topicTitle" placeholder="Tên chủ đề (Ví dụ: Chiến dịch Q4, Tối ưu SEO...)" required style="padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none;"/>
+                    <input type="text" name="description" placeholder="Mục tiêu hoặc hướng dẫn triển khai..." style="padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none;"/>
+                    <button type="submit" class="iv-btn" style="background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: bold; cursor: pointer;">
+                        ➕ Thêm chủ đề
+                    </button>
+                </div>
+            </form>
+        </c:if>
 
         <c:if test="${not empty topics}">
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px;">
@@ -139,5 +185,43 @@
         </table>
     </div>
 </div>
+
+<!-- POP-UP MODAL XÁC NHẬN RESET -->
+<div id="resetModal" class="reset-modal-overlay">
+    <div class="reset-modal-box">
+        <div style="font-size: 2.2rem; margin-bottom: 8px;">⚠️</div>
+        <h3 style="margin: 0 0 8px 0; color: #0f172a; font-size: 1.25rem;">Bạn đã lưu trữ chưa?</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 22px; line-height: 1.5;">
+            Thao tác reset sẽ xóa toàn bộ chủ đề và phân công hiện tại để bắt đầu dự án mới. Hãy chắc chắn bạn đã lưu tiến độ vào kho lưu trữ!
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; align-items: center;">
+            <!-- ICON / NÚT BÊN TRÁI: RỒI -> RESET TRẮNG TRƠN -->
+            <form method="post" action="${pageContext.request.contextPath}/leader-room" style="margin: 0;">
+                <input type="hidden" name="action" value="resetProject"/>
+                <input type="hidden" name="deptId" value="${leaderDept.departmentId}"/>
+                <button type="submit" style="background: #e11d48; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                    ✓ Rồi
+                </button>
+            </form>
+
+            <!-- ICON / NÚT BÊN PHẢI: CHƯA -> NHẢY THẲNG SANG TỔNG KẾT TIẾN ĐỘ ĐỂ LƯU -->
+            <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${leaderDept.departmentId}" style="background: #2563eb; color: #fff; text-decoration: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                ✕ Chưa
+            </a>
+        </div>
+        <button type="button" onclick="closeResetModal()" style="margin-top: 16px; background: none; border: none; color: #94a3b8; font-size: 0.85rem; cursor: pointer; text-decoration: underline;">
+            Đóng
+        </button>
+    </div>
+</div>
+
+<script>
+    function openResetModal() {
+        document.getElementById('resetModal').style.display = 'flex';
+    }
+    function closeResetModal() {
+        document.getElementById('resetModal').style.display = 'none';
+    }
+</script>
 
 <jsp:include page="/interview/staff_footer.jsp"/>

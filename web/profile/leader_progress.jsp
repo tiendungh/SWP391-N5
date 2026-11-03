@@ -66,12 +66,15 @@
         </div>
     </div>
 
-    <!-- 3 TASKBAR NHỎ ĐIỀU HƯỚNG (BỔ SUNG deptId ĐỂ GIỮ ĐÚNG PHÒNG ĐANG CHỌN) -->
-    <div class="room-tabs">
-        <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${leaderDept.departmentId}" class="room-tab-item">👥 Quản lý nhân viên</a>
-        <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${leaderDept.departmentId}" class="room-tab-item">📋 Chủ đề + Phân công</a>
-        <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${leaderDept.departmentId}" class="room-tab-item active">📊 Tổng kết tiến độ</a>
-    </div>
+    <!-- 4 TASKBARS ĐIỀU HƯỚNG: BỔ SUNG "KHO LƯU TRỮ" CHO TRƯỞNG PHÒNG VÀ ADMIN -->
+    <c:if test="${canEdit}">
+        <div class="room-tabs">
+            <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${leaderDept.departmentId}" class="room-tab-item">👥 Quản lý nhân viên</a>
+            <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${leaderDept.departmentId}" class="room-tab-item">📋 Chủ đề + Phân công</a>
+            <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${leaderDept.departmentId}" class="room-tab-item active">📊 Tổng kết tiến độ</a>
+            <a href="${pageContext.request.contextPath}/leader-room?tab=archive&deptId=${leaderDept.departmentId}" class="room-tab-item">🗄️ Kho lưu trữ</a>
+        </div>
+    </c:if>
 
     <!-- 4 HỘP THỐNG KÊ TIẾN ĐỘ TỔNG HỢP -->
     <div class="stats-grid">
@@ -124,29 +127,19 @@
                                 <td><c:out value="${t.taskContent}"/></td>
                                 <td>
                                     <span style="color: #dc2626; font-weight: 600;">
-                                        <c:choose>
-                                            <c:when test="${not empty t.deadline}">
-                                                <c:catch var="fmtEx">
-                                                    <fmt:formatDate value="${t.deadline}" pattern="dd/MM/yyyy"/>
-                                                </c:catch>
-                                                <c:if test="${not empty fmtEx}">
-                                                    <c:out value="${t.deadline}"/>
-                                                </c:if>
-                                            </c:when>
-                                            <c:otherwise>—</c:otherwise>
-                                        </c:choose>
+                                        ${not empty t.deadline ? t.deadline : '—'}
                                     </span>
                                 </td>
                                 <td>
                                     <b>${t.progress}%</b>
                                     <div class="progress-bar-wrap" style="width: 90px;">
-                                        <div class="progress-bar-fill" style="width: ${t.progress}%; background: ${(t.completed || t.progress >= 100) ? '#10b981' : '#3b82f6'};"></div>
+                                        <div class="progress-bar-fill" style="width: ${t.progress}%; background: ${(t.progress >= 100) ? '#10b981' : '#3b82f6'};"></div>
                                     </div>
                                 </td>
                                 <td><c:out value="${empty t.leaderNote ? '—' : t.leaderNote}"/></td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${t.completed || t.progress >= 100}">
+                                        <c:when test="${t.progress >= 100}">
                                             <span style="background: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.8rem;">
                                                 ✓ Đã duyệt xong
                                             </span>
@@ -164,6 +157,20 @@
                 </c:choose>
             </tbody>
         </table>
+
+        <!-- PHẦN CUỐI GIAO DIỆN: ICON VÀ NÚT LƯU CHỦ ĐỀ VÀO KHO LƯU TRỮ -->
+        <c:if test="${canEdit && not empty allTasks}">
+            <div style="margin-top: 24px; padding-top: 18px; border-top: 1.5px dashed #cbd5e1; display: flex; justify-content: flex-end; align-items: center;">
+                <form method="post" action="${pageContext.request.contextPath}/leader-room" style="display: inline-flex; align-items: center; gap: 10px; margin: 0;">
+                    <input type="hidden" name="action" value="saveArchive"/>
+                    <input type="hidden" name="deptId" value="${leaderDept.departmentId}"/>
+                    <input type="text" name="projectName" placeholder="Nhập tên dự án / đợt lưu trữ (VD: Dự án Lego Q4)..." required style="padding: 10px 14px; border: 1.5px solid #94a3b8; border-radius: 8px; width: 340px; font-size: 0.9rem; outline: none;"/>
+                    <button type="submit" style="background: #059669; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        💾 Lưu chủ đề
+                    </button>
+                </form>
+            </div>
+        </c:if>
     </div>
 </div>
 

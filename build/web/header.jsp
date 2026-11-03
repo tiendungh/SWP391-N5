@@ -25,8 +25,8 @@
                                                 <li><a href="job_add">Đăng công việc</a></li>
                                                 <li><a href="employer_jobs">Xem công việc</a></li>
                                                 <li><a href="viewPublicCVs">Tìm ứng viên</a></li>
-                                                </c:when>
-                                                <c:otherwise>
+                                            </c:when>
+                                            <c:otherwise>
                                                 <li><a href="home">Trang chủ</a></li>
                                                 <li><a href="jobs">Việc làm <i class="ti-angle-down"></i></a>
                                                     <ul class="submenu">
@@ -41,6 +41,10 @@
                                                         <li><a href="list-cv">Quản lí CV</a></li>
                                                     </ul>
                                                 </li>
+                                                <%-- THÊM MỚI: Menu xem Tiến độ phòng ban khi đã đăng nhập --%>
+                                                <c:if test="${not empty sessionScope.user}">
+                                                    <li><a href="${pageContext.request.contextPath}/leader-room?tab=progress">Tiến độ phòng ban</a></li>
+                                                </c:if>
                                             </c:otherwise>
                                         </c:choose>
                                     </ul>
@@ -62,12 +66,14 @@
                                                         <c:when test="${sessionScope.role eq 'Candidate'}"><a href="candidateProfile"><b>Xin chào, ${sessionScope.user.candidateName}</b></a></c:when>
                                                         <c:when test="${sessionScope.role eq 'Employer'}"><a href="employerProfile"><b>Xin chào, ${sessionScope.user.employerName}</b></a></c:when>
                                                         <c:otherwise><a href="#"><b>${sessionScope.user.username}</b></a></c:otherwise>
-                                                            </c:choose>
+                                                    </c:choose>
                                                     <ul class="submenu">
                                                         <c:choose>
                                                             <c:when test="${sessionScope.role eq 'Candidate'}"><li><a href="candidateProfile">Xem hồ sơ</a></li></c:when>
                                                             <c:when test="${sessionScope.role eq 'Employer'}"><li><a href="employerProfile">Xem hồ sơ</a></li><li><a href="payments_history">Lịch sử giao dịch</a></li></c:when>
-                                                            </c:choose>
+                                                        </c:choose>
+                                                        <%-- THÊM MỚI: Tùy chọn Tiến độ phòng ban trong dropdown profile cá nhân --%>
+                                                        <li><a href="${pageContext.request.contextPath}/leader-room?tab=progress">Tiến độ phòng ban</a></li>
                                                         <li><a href="logout">Đăng xuất</a></li>
                                                     </ul>
                                                 </li>
