@@ -147,6 +147,11 @@ body.iv-body {
     transition: .15s;
 }
 .iv-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(37,99,235,.25); color: #fff; }
+.iv-btn:focus-visible, .iv-nav a:focus-visible, .iv-back-link:focus-visible,
+.iv-file-link:focus-visible, .iv-sidebar-footer a:focus-visible {
+    outline: 3px solid rgba(37,99,235,.35);
+    outline-offset: 3px;
+}
 .iv-btn-ghost { background: #fff; border: 1px solid var(--iv-border); color: var(--iv-text); }
 .iv-btn-ghost:hover { border-color: var(--iv-primary); color: var(--iv-primary); box-shadow: none; }
 .iv-btn-sm { padding: 7px 14px; font-size: 12.5px; border-radius: 8px; }
@@ -253,7 +258,31 @@ body.iv-body {
 }
 .iv-grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: start; }
 @media (max-width: 900px) {
-    .iv-sidebar { display: none; }
+    .iv-shell { display: block; }
+    .iv-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        padding: 16px 14px;
+    }
+    .iv-sidebar .iv-logo { margin-bottom: 14px; }
+    .iv-nav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        overscroll-behavior-inline: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+    .iv-nav a {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        flex: 0 0 auto;
+        margin-bottom: 0;
+        touch-action: manipulation;
+    }
+    .iv-sidebar-footer { margin-top: 14px; padding-top: 12px; }
     .iv-grid-2 { grid-template-columns: 1fr; }
 }
 .iv-muted { color: var(--iv-muted); }
@@ -268,7 +297,12 @@ body.iv-body {
     margin-bottom: 14px;
 }
 .iv-section-head h2 { margin-bottom: 4px; }
-.iv-table-wrap { width: 100%; overflow-x: auto; }
+.iv-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
 .iv-progress-cell { min-width: 180px; }
 .iv-progress {
     width: 100%;
@@ -394,8 +428,18 @@ body.iv-body {
 
 @media (max-width: 700px) {
     .iv-main { padding: 20px 14px; }
+    .iv-card { padding: 18px 16px; }
     .iv-topbar, .iv-profile-hero { align-items: flex-start; flex-direction: column; }
     .iv-whoami { text-align: left; }
     .iv-profile-score { width: 100%; text-align: left; }
     .iv-document-head { flex-direction: column; }
+    .iv-field { min-width: 100%; }
+    .iv-field input, .iv-field select, .iv-field textarea { min-height: 44px; font-size: 16px; }
+    .iv-btn, .iv-btn-sm { min-height: 44px; padding: 11px 16px; touch-action: manipulation; }
+    .iv-action-row { flex-wrap: wrap; gap: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .iv-btn, .iv-nav a, .iv-field input, .iv-field select, .iv-field textarea { transition: none; }
+    .iv-btn:hover { transform: none; }
 }

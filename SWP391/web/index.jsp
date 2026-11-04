@@ -205,8 +205,15 @@
                         <div class="searching_text career-searching-text">
                             <span class="career-label">LỘ TRÌNH SỰ NGHIỆP</span>
                             <h3>Định hướng tương lai<br>và phát triển bản thân</h3>
-                            <p>Khám phá lộ trình thăng tiến trong công việc phù hợp với đúng vị trí, năng lực và mục tiêu của bạn.</p>
-                            <a href="jobs" class="boxed-btn3">KHÁM PHÁ LỘ TRÌNH</a>
+                            <p>Xem vị trí hiện tại, bước phát triển tiếp theo và lịch sử nghề nghiệp từ dữ liệu nhân viên của bạn.</p>
+                            <c:choose>
+                                <c:when test="${not empty sessionScope.staffId}">
+                                    <a href="${pageContext.request.contextPath}/my-career-path" class="boxed-btn3">XEM LỘ TRÌNH CỦA TÔI</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <a href="${pageContext.request.contextPath}/login" class="boxed-btn3">ĐĂNG NHẬP ĐỂ KHÁM PHÁ</a>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
                     <div class="col-lg-6 col-md-6">
@@ -216,18 +223,18 @@
                                     <span class="roadmap-kicker">CAREER ROADMAP</span>
                                     <h4>Lộ trình thăng tiến</h4>
                                 </div>
-                                <span class="roadmap-icon">↗</span>
+                                <span class="roadmap-icon"><i class="fa fa-line-chart" aria-hidden="true"></i></span>
                             </div>
                             <div class="roadmap-steps">
-                                <div class="roadmap-step active"><span><strong>Employee</strong></span><div><small>Phát triển nền tảng</small></div></div>
+                                <div class="roadmap-step active"><span aria-hidden="true">01</span><div><strong>Vị trí hiện tại</strong><small>Chức danh và cấp bậc đang đảm nhiệm</small></div></div>
                                 <div class="roadmap-line"></div>
-                                <div class="roadmap-step"><span><strong>Manager</strong></span><div><small>Nâng cao chuyên môn</small></div></div>
+                                <div class="roadmap-step"><span aria-hidden="true">02</span><div><strong>Bước phát triển</strong><small>Vị trí tiếp theo theo CareerPath</small></div></div>
                                 <div class="roadmap-line"></div>
-                                <div class="roadmap-step"><span><strong>Leader</strong></span><div><small>Dẫn dắt & quản lý</small></div></div>
+                                <div class="roadmap-step"><span aria-hidden="true">03</span><div><strong>Thăng tiến</strong><small>Đề nghị, phê duyệt và lưu lịch sử</small></div></div>
                             </div>
                             <div class="roadmap-card-footer">
-                                <span style="display: block;">✓ Đánh giá năng lực</span>
-                                                        <span>✓ Mục tiêu cá nhân</span>
+                                <span>✓ Dữ liệu từ database</span>
+                                <span>✓ Lịch sử vị trí rõ ràng</span>
                             </div>
                         </div>
                     </div>
