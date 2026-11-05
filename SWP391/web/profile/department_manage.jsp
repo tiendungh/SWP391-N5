@@ -318,7 +318,7 @@
             </div>
         </div>
 
-        <button type="button" class="iv-btn" onclick="toggleAssignForm()" style="display: flex; align-items: center; gap: 6px;">
+        <button type="button" class="iv-btn" onclick="toggleAssignForm()" style="display: flex; align-items: center; gap: 6px;font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont";>
             Phân công / Điều chuyển nhân sự
         </button>
     </div>

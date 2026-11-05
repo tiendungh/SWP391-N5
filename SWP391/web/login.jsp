@@ -211,7 +211,7 @@
                         <label>Mật khẩu</label>
                         <input type="password" name="password" placeholder="••••••••" required />
                     </div>
-                    <button type="submit" class="btn-login">Đăng nhập hệ thống</button>
+                    <button type="submit" class="btn-login" style="font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont">Đăng nhập hệ thống</button>
                 </form>
                 <div class="login-links">
                     <a href="<%= request.getContextPath() %>/forget_password.jsp">Quên mật khẩu?</a>

@@ -16,9 +16,9 @@
 <c:if test="${not empty error}"><div class="iv-alert iv-alert-error">${error}</div></c:if>
 <c:if test="${param.created == '1'}"><div class="iv-alert iv-alert-success">Đã tạo JD mới thành công.</div></c:if>
 
-<div class="iv-grid-2" style="grid-template-columns: 1.7fr 1fr;">
-    <div class="iv-card">
-        <h2>Danh sách JD (${jobPosts.size()})</h2>
+    <div class="iv-grid-2" style="grid-template-columns: 1.7fr 1fr;">
+        <div class="iv-card">
+            <h2>Danh sách JD (${jobPosts.size()})</h2>
         <c:choose>
             <c:when test="${empty jobPosts}">
                 <div class="iv-empty">Chưa có JD nào. Tạo JD đầu tiên bên phải.</div>
@@ -33,8 +33,8 @@
                                 <td class="iv-small">
                                     <c:if test="${not empty j.offerMin}">${j.offerMin} - ${j.offerMax}</c:if>
                                     <c:if test="${empty j.offerMin}">Thỏa thuận</c:if>
-                                </td>
-                                <td class="iv-small"><fmt:formatDate value="${j.deadline}" pattern="dd/MM/yyyy"/></td>
+                                    </td>
+                                    <td class="iv-small"><fmt:formatDate value="${j.deadline}" pattern="dd/MM/yyyy"/></td>
                                 <td>
                                     <a href="${pageContext.request.contextPath}/screening?jobPostId=${j.jobPostId}" class="iv-badge iv-badge-blue" style="text-decoration:none;">${j.applyCount} hồ sơ</a>
                                 </td>
@@ -45,14 +45,16 @@
                                     </c:choose>
                                 </td>
                                 <td>
-                                    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+                                    <div style="display:inline-flex; flex-direction:column; gap:8px; align-items:flex-start;align-items:center;justify-content: center;">
                                         <form method="post" action="${pageContext.request.contextPath}/job-post" style="margin:0;">
                                             <input type="hidden" name="action" value="toggle"/>
                                             <input type="hidden" name="jobPostId" value="${j.jobPostId}"/>
                                             <input type="hidden" name="newVisible" value="${j.visible ? 0 : 1}"/>
-                                            <button type="submit" class="iv-btn iv-btn-sm iv-btn-ghost">${j.visible ? 'Đóng ứng tuyển' : 'Mở ứng tuyển'}</button>
+                                            <button type="submit" class="iv-btn iv-btn-sm iv-btn-ghost" style="font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont;">
+                                                ${j.visible ? 'Đóng ứng tuyển' : 'Mở ứng tuyển'}
+                                            </button>                                        
                                         </form>
-                                        <a href="${pageContext.request.contextPath}/jobs?id=${j.jobPostId}" target="_blank" class="iv-btn iv-btn-sm iv-btn-ghost">Xem public</a>
+                                        <a href="${pageContext.request.contextPath}/jobs?id=${j.jobPostId}" class="iv-btn iv-btn-sm iv-btn-ghost" style="text-align: center"> Xem trên trang</a>
                                     </div>
                                 </td>
                             </tr>

@@ -30,7 +30,7 @@
     </div>
 </c:if>
 
-<%-- THÊM MỚI: Khối hiển thị thông tin Phòng ban & Vị trí công tác của nhân viên --%>
+<%-- Khối 1: Thông tin công tác & Phòng ban --%>
 <div class="iv-card">
     <div class="iv-section-head">
         <div>
@@ -114,9 +114,83 @@
         </div>
     </c:if>
 </div>
-<%-- KẾT THÚC KHỐI BỔ SUNG --%>
 
-<div class="iv-card">
+<%-- Khối 2: Nhiệm vụ & Tiến độ công việc được giao --%>
+<div class="iv-card" style="margin-top: 20px;">
+    <div class="iv-section-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h2>Nhiệm vụ & Tiến độ công việc được giao</h2>
+            <span class="iv-small iv-muted">Các đầu việc và nhiệm vụ do Trưởng nhóm phòng ban phân công trực tiếp.</span>
+        </div>
+        <div style="text-align: right;">
+            <span style="font-size: 1.1rem; font-weight: bold; color: #2563eb;">
+                ${not empty myTaskCompleted ? myTaskCompleted : 0} / ${not empty myTaskTotal ? myTaskTotal : 0}
+            </span>
+            <span class="iv-small iv-muted">việc hoàn thành (${not empty myTaskPercent ? myTaskPercent : 0}%)</span>
+        </div>
+    </div>
+
+    <div class="iv-table-wrap">
+        <table class="iv-table" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Nội dung công việc</th>
+                    <th style="width: 15%;">Hạn chót</th>
+                    <th style="width: 15%;">Tiến độ</th>
+                    <th style="width: 23%;">Ghi chú Trưởng phòng</th>
+                    <th style="width: 12%; text-align: center;">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:choose>
+                    <c:when test="${empty myTaskList}">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">
+                                Bạn chưa có nhiệm vụ nào được phân công.
+                            </td>
+                        </tr>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach var="task" items="${myTaskList}">
+                            <tr>
+                                <td><b><c:out value="${task.taskContent}"/></b></td>
+                                <td>
+                                    <span style="color: #dc2626; font-weight: 600;">
+                                        <c:out value="${not empty task.deadline ? task.deadline : '—'}"/>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                                            <div style="height: 100%; width: ${task.progress}%; background: ${task.progress >= 100 ? '#10b981' : '#2563eb'};"></div>
+                                        </div>
+                                        <span style="font-size: 0.85rem; font-weight: bold;">${task.progress}%</span>
+                                    </div>
+                                </td>
+                                <td style="color: #475569; font-style: italic;">
+                                    <c:out value="${not empty task.leaderNote ? task.leaderNote : '—'}"/>
+                                </td>
+                                <td style="text-align: center;">
+                                    <c:choose>
+                                        <c:when test="${task.completed || task.progress >= 100}">
+                                            <span class="iv-badge iv-badge-green">✓ Hoàn thành</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="iv-badge iv-badge-yellow" style="background: #fef3c7; color: #b45309;">⏳ Đang làm</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%-- Khối 3: Danh sách cần hoàn thành (Hồ sơ gốc) --%>
+<div class="iv-card" style="margin-top: 20px;">
     <h2>Danh sách cần hoàn thành (${documents.size()})</h2>
     <c:choose>
         <c:when test="${empty documents}">
@@ -179,8 +253,9 @@
     </c:choose>
 </div>
 
+<%-- Khối 4: Lịch sử gần đây --%>
 <c:if test="${not empty documentHistory}">
-    <div class="iv-card">
+    <div class="iv-card" style="margin-top: 20px;">
         <h2>Lịch sử gần đây</h2>
         <div class="iv-timeline">
             <c:forEach var="history" items="${documentHistory}">

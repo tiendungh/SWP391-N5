@@ -32,7 +32,7 @@
             </select>
         </div>
         <div class="iv-field" style="justify-content:flex-end;">
-            <button type="submit" class="iv-btn">Lọc</button>
+            <button type="submit" class="iv-btn" style="font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont">Lọc</button>
         </div>
         <div class="iv-field" style="justify-content:flex-end;">
             <a class="iv-btn iv-btn-ghost" href="${pageContext.request.contextPath}/interview-calendar">Xóa lọc</a>

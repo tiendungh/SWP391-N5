@@ -79,6 +79,8 @@
                             <a href="${pageContext.request.contextPath}/request-account"
                                class="${currentNav == 'requestAccount' ? 'active' : ''}">Yêu cầu tạo tài khoản</a>
                         </c:if>
+                        <a href="${pageContext.request.contextPath}/promotion-requests"
+                           class="${currentNav == 'promotionRequests' ? 'active' : ''}">Đề nghị thăng chức</a>
                     </c:if>
 
                     <%-- ========================================================================= --%>
@@ -163,6 +165,8 @@
                     </c:if>
                     <%-- ========================================================================= --%>
 
+                    <a href="${pageContext.request.contextPath}/my-career-path"
+                       class="${currentNav == 'myCareer' ? 'active' : ''}">Lộ trình của tôi</a>
                     <a href="${pageContext.request.contextPath}/my-profile-documents"
                        class="${currentNav == 'myProfile' ? 'active' : ''}">Hồ sơ của tôi</a>
                 </nav>
