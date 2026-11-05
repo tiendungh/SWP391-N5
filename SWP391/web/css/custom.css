@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 .header-area {
     background: #2B9BFF;
@@ -1111,7 +1111,7 @@ body {
   background: var(--light-bg);
   background-image: radial-gradient(circle at 10% 15%, rgba(63, 136, 197, 0.08) 0%, transparent 40%), radial-gradient(circle at 90% 85%, rgba(63, 136, 197, 0.07) 0%, transparent 40%);
   color: var(--text-main);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   letter-spacing: -0.2px;
 }
 
@@ -1207,6 +1207,18 @@ body {
 .phone_num a:hover { color: var(--brand-primary) !important; }
 
 /* Glass CTA Button */
+.boxed-btn3,
+.boxed-btn,
+.btn-find,
+.hero-primary-btn,
+.hero-link-btn,
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
 .Appointment .boxed-btn3 {
   border-radius: var(--radius-md) !important;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark)) !important;

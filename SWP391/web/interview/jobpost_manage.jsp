@@ -16,7 +16,7 @@
 <c:if test="${not empty error}"><div class="iv-alert iv-alert-error">${error}</div></c:if>
 <c:if test="${param.created == '1'}"><div class="iv-alert iv-alert-success">Đã tạo JD mới thành công.</div></c:if>
 
-<div class="iv-grid-2">
+<div class="iv-grid-2" style="grid-template-columns: 1.7fr 1fr;">
     <div class="iv-card">
         <h2>Danh sách JD (${jobPosts.size()})</h2>
         <c:choose>
@@ -45,13 +45,15 @@
                                     </c:choose>
                                 </td>
                                 <td>
-                                    <form method="post" action="${pageContext.request.contextPath}/job-post" style="display:inline;">
-                                        <input type="hidden" name="action" value="toggle"/>
-                                        <input type="hidden" name="jobPostId" value="${j.jobPostId}"/>
-                                        <input type="hidden" name="newVisible" value="${j.visible ? 0 : 1}"/>
-                                        <button type="submit" class="iv-btn iv-btn-sm iv-btn-ghost">${j.visible ? 'Đóng tuyển' : 'Mở lại'}</button>
-                                    </form>
-                                    <a href="${pageContext.request.contextPath}/jobs?id=${j.jobPostId}" target="_blank" class="iv-btn iv-btn-sm iv-btn-ghost">Xem public</a>
+                                    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+                                        <form method="post" action="${pageContext.request.contextPath}/job-post" style="margin:0;">
+                                            <input type="hidden" name="action" value="toggle"/>
+                                            <input type="hidden" name="jobPostId" value="${j.jobPostId}"/>
+                                            <input type="hidden" name="newVisible" value="${j.visible ? 0 : 1}"/>
+                                            <button type="submit" class="iv-btn iv-btn-sm iv-btn-ghost">${j.visible ? 'Đóng ứng tuyển' : 'Mở ứng tuyển'}</button>
+                                        </form>
+                                        <a href="${pageContext.request.contextPath}/jobs?id=${j.jobPostId}" target="_blank" class="iv-btn iv-btn-sm iv-btn-ghost">Xem public</a>
+                                    </div>
                                 </td>
                             </tr>
                         </c:forEach>

@@ -1,5 +1,6 @@
 package controller.Profile;
 
+import dal.DepartmentDAO;
 import dal.ProfileDocumentDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -9,7 +10,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import model.DepartmentTaskModel;
 import tool.SessionUtil;
 
 @WebServlet("/my-profile-documents")
@@ -85,20 +89,56 @@ public class MyProfileDocumentsServlet extends HttpServlet {
     private void renderPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int employeeId = SessionUtil.getStaffId(request);
-        ProfileDocumentDAO dao = new ProfileDocumentDAO();
-        request.setAttribute("profileSummary", dao.getEmployeeSummary(employeeId));
-        request.setAttribute("documents", dao.getDocumentsByEmployee(employeeId));
-        request.setAttribute("documentHistory", dao.getHistoryByEmployee(employeeId));
-        dao.closeConnection();
 
-        // THÊM MỚI: Tải thông tin phòng ban, vị trí và lịch sử công tác của Employee
+        // 1. Luôn tải danh sách hồ sơ tài liệu gốc
+        ProfileDocumentDAO dao = new ProfileDocumentDAO();
+        try {
+            request.setAttribute("profileSummary", dao.getEmployeeSummary(employeeId));
+            request.setAttribute("documents", dao.getDocumentsByEmployee(employeeId));
+            request.setAttribute("documentHistory", dao.getHistoryByEmployee(employeeId));
+        } catch (Exception ex) {
+            System.err.println("MyProfileDocumentsServlet documents load error: " + ex.getMessage());
+        } finally {
+            dao.closeConnection();
+        }
+
+        // 2. Tải thông tin phòng ban, chức vụ & lịch sử công tác
         loadWorkDepartmentInfo(request, employeeId);
+
+        // 3. Tải danh sách nhiệm vụ được giao
+        loadTaskProgressInfo(request, employeeId);
 
         request.getRequestDispatcher("/profile/my_profile_documents.jsp").forward(request, response);
     }
 
-    // THÊM MỚI: Hàm đọc dữ liệu phòng ban từ database SWP391
-    // THÊM MỚI: Hàm đọc dữ liệu phòng ban từ database SWP391 qua DAO
+    private void loadTaskProgressInfo(HttpServletRequest request, int employeeId) {
+        try {
+            DepartmentDAO deptDao = new DepartmentDAO();
+            List<DepartmentTaskModel> myTasks = deptDao.getTasksByEmployee(employeeId);
+            if (myTasks == null) myTasks = new ArrayList<>();
+            request.setAttribute("myTaskList", myTasks);
+
+            int total = myTasks.size();
+            int done = 0;
+            for (DepartmentTaskModel t : myTasks) {
+                if (t.isCompleted() || t.getProgress() >= 100) {
+                    done++;
+                }
+            }
+            int taskPercent = total > 0 ? (done * 100 / total) : 0;
+
+            request.setAttribute("myTaskCompleted", done);
+            request.setAttribute("myTaskTotal", total);
+            request.setAttribute("myTaskPercent", taskPercent);
+        } catch (Exception e) {
+            System.err.println("MyProfileDocumentsServlet.loadTaskProgressInfo error: " + e.getMessage());
+            request.setAttribute("myTaskList", new ArrayList<DepartmentTaskModel>());
+            request.setAttribute("myTaskCompleted", 0);
+            request.setAttribute("myTaskTotal", 0);
+            request.setAttribute("myTaskPercent", 0);
+        }
+    }
+
     private void loadWorkDepartmentInfo(HttpServletRequest request, int employeeId) {
         try {
             dal.StaffDAO staffDAO = new dal.StaffDAO();

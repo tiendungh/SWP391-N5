@@ -90,7 +90,7 @@
         </div>
 
         <button type="button" class="iv-btn" onclick="toggleAssignForm()" style="display: flex; align-items: center; gap: 6px;">
-            <span>➕</span> Phân công / Điều chuyển nhân sự
+            Phân công / Điều chuyển nhân sự
         </button>
     </div>
 
@@ -319,7 +319,7 @@
         </div>
 
         <button type="button" class="iv-btn" onclick="toggleAssignForm()" style="display: flex; align-items: center; gap: 6px;">
-            <span>➕</span> Phân công / Điều chuyển nhân sự
+            Phân công / Điều chuyển nhân sự
         </button>
     </div>
 

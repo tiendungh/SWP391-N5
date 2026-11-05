@@ -3,7 +3,7 @@
    Glassmorphism Theme (#3F88C5 & Inter Font)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
     --pb-brand: #3F88C5;
@@ -35,7 +35,7 @@
 
 body.pb-body {
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Be Vietnam Pro', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: var(--pb-text-main);
     background: var(--pb-light-bg);
     background-image: 
@@ -227,6 +227,14 @@ body.pb-body {
   border: 1px solid rgba(63, 136, 197, 0.25);
 }
 
+.pb-btn,
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
 .pb-btn {
   display: inline-flex;
   align-items: center;
@@ -237,7 +245,7 @@ body.pb-body {
   padding: 12px 24px;
   border-radius: var(--pb-radius-sm);
   font-size: 13.5px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;

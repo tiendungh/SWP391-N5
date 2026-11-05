@@ -40,7 +40,7 @@
 
     <div class="dept-detail-header">
         <div>
-            <h1 style="margin: 0; font-size: 1.8rem; color: #0f172a;">🏢 Phòng: <c:out value="${dept.departmentName}"/></h1>
+            <h1 style="margin: 0; font-size: 1.8rem; color: #0f172a;">Phòng: <c:out value="${dept.departmentName}"/></h1>
             <p style="margin: 6px 0 0 0; color: #64748b;"><c:out value="${dept.description}"/></p>
         </div>
         <div>
@@ -61,12 +61,12 @@
     <div class="leader-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span class="leader-badge">⭐ Trưởng nhóm / Leader</span>
+                <span class="leader-badge">Trưởng nhóm / Leader</span>
                 <span class="iv-small iv-muted">Phụ trách điều hành & quản lý chất trị phòng ban</span>
             </div>
             <!-- ICON THAY ĐỔI TRƯỞNG NHÓM -->
             <a href="${pageContext.request.contextPath}/department-member-edit?deptName=${dept.departmentName}&isLeader=1" class="btn-action-icon">
-                ✏️ Thay đổi Trưởng nhóm
+                Thay đổi Trưởng nhóm
             </a>
         </div>
 
@@ -94,7 +94,7 @@
                                 <td>
                                     <a href="${pageContext.request.contextPath}/department-member-edit?deptName=${dept.departmentName}&empId=${leader.employeeId}" 
                                        class="btn-action-icon" style="padding: 4px 10px; font-size: 0.85rem;">
-                                        ⚙️ Sửa thông tin
+                                        Sửa thông tin
                                     </a>
                                 </td>
                             </tr>
@@ -104,7 +104,7 @@
             </c:when>
             <c:otherwise>
                 <div style="padding: 16px; background: #fff; border-radius: 8px; color: #dc2626; font-weight: 500;">
-                    ⚠️ Phòng ban này hiện chưa bổ nhiệm Trưởng nhóm. Vui lòng bấm <b>"Thay đổi Trưởng nhóm"</b> để chỉ định.
+                    Phòng ban này hiện chưa bổ nhiệm Trưởng nhóm. Vui lòng bấm <b>"Thay đổi Trưởng nhóm"</b> để chỉ định.
                 </div>
             </c:otherwise>
         </c:choose>
@@ -150,7 +150,7 @@
                                         <!-- NÚT THAY ĐỔI NHÂN SỰ BẤM ĐƯỢC -->
                                         <a href="${pageContext.request.contextPath}/department-member-edit?deptName=${dept.departmentName}&empId=${m.employeeId}" 
                                            class="btn-action-icon">
-                                            ✏️ Thay đổi
+                                            Thay đổi
                                         </a>
                                     </td>
                                 </tr>

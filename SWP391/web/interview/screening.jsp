@@ -140,8 +140,8 @@
                         </table>
 
                         <div style="margin-top:14px;">
-                            <button type="submit" name="decision" value="Shortlisted" class="iv-btn">✓ Pass các hồ sơ đã chọn</button>
-                            <button type="submit" name="decision" value="Rejected" class="iv-btn iv-btn-danger">✕ Loại các hồ sơ đã chọn</button>
+                            <button type="submit" name="decision" value="Shortlisted" class="iv-btn">Pass các hồ sơ đã chọn</button>
+                            <button type="submit" name="decision" value="Rejected" class="iv-btn iv-btn-danger">Loại các hồ sơ đã chọn</button>
                         </div>
                     </form>
                 </c:otherwise>
