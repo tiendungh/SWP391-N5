@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 440" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Glassmorphic Gradients -->
+    <linearGradient id="glassLight" x1="0" y1="0" x2="310" y2="205" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.88" />
+      <stop offset="100%" stop-color="#f0f7fd" stop-opacity="0.75" />
+    </linearGradient>
+    <linearGradient id="glassDark" x1="0" y1="0" x2="295" y2="195" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#183654" stop-opacity="0.92" />
+      <stop offset="100%" stop-color="#0e2338" stop-opacity="0.95" />
+    </linearGradient>
+    <linearGradient id="blueBadge" x1="0" y1="0" x2="115" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5ba0d6" />
+      <stop offset="100%" stop-color="#3F88C5" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5ba0d6" />
+      <stop offset="100%" stop-color="#3F88C5" />
+    </linearGradient>
+    <filter id="glassShadow" x="-20" y="-10" width="350" height="270" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#3F88C5" flood-opacity="0.18" />
+    </filter>
+    <filter id="ambientGlow" x="-30" y="-30" width="160" height="160" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="14" result="blur" />
+    </filter>
+  </defs>
+
+  <!-- Ambient background glow spheres (Glassmorphism backdrop) -->
+  <circle cx="260" cy="210" r="170" fill="#3F88C5" fill-opacity="0.12" filter="url(#ambientGlow)" />
+  <circle cx="410" cy="120" r="110" fill="#6BA9DF" fill-opacity="0.10" filter="url(#ambientGlow)" />
+  <circle cx="120" cy="320" r="90" fill="#3F88C5" fill-opacity="0.08" filter="url(#ambientGlow)" />
+
+  <!-- Grid Tech Lines -->
+  <g stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" stroke-dasharray="4 6">
+    <line x1="40" y1="80" x2="540" y2="80" />
+    <line x1="40" y1="180" x2="540" y2="180" />
+    <line x1="40" y1="280" x2="540" y2="280" />
+    <line x1="40" y1="380" x2="540" y2="380" />
+    <line x1="120" y1="30" x2="120" y2="410" />
+    <line x1="260" y1="30" x2="260" y2="410" />
+    <line x1="400" y1="30" x2="400" y2="410" />
+  </g>
+
+  <!-- Card 1: Frosted Glass Candidate Profile (Top Left) -->
+  <g filter="url(#glassShadow)">
+    <rect x="50" y="45" width="310" height="205" rx="20" fill="url(#glassLight)" stroke="rgba(255, 255, 255, 0.85)" stroke-width="1.5" />
+    
+    <!-- Avatar with #3F88C5 fill -->
+    <circle cx="85" cy="85" r="22" fill="#3F88C5" />
+    <path d="M77 93C77 89 80.5 86 85 86C89.5 86 93 89 93 93" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+    <circle cx="85" cy="78" r="5" fill="#ffffff" />
+    
+    <text x="120" y="80" font-family="'Inter', sans-serif" font-size="15" font-weight="800" fill="#132b45">Lê Thành An</text>
+    <text x="120" y="96" font-family="'Inter', sans-serif" font-size="11.5" font-weight="600" fill="#64748b">Senior Fullstack Engineer</text>
+    
+    <!-- Status Badge -->
+    <rect x="250" y="70" width="92" height="26" rx="13" fill="#e8f2fa" stroke="rgba(63, 136, 197, 0.25)" stroke-width="1" />
+    <circle cx="262" cy="83" r="3.5" fill="#3F88C5" />
+    <text x="272" y="87" font-family="'Inter', sans-serif" font-size="10.5" font-weight="700" fill="#2a6ea8">Đạt sơ loại</text>
+
+    <!-- Divider -->
+    <line x1="75" y1="122" x2="335" y2="122" stroke="rgba(63, 136, 197, 0.12)" stroke-width="1.5" />
+
+    <!-- Skills & Tags with frosted pill styling -->
+    <text x="75" y="145" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#475569">KỸ NĂNG CHÍNH</text>
+    <rect x="75" y="155" width="62" height="22" rx="7" fill="#ffffff" stroke="rgba(63, 136, 197, 0.18)" stroke-width="1" />
+    <text x="86" y="170" font-family="'Inter', sans-serif" font-size="10.5" font-weight="600" fill="#334155">Java EE</text>
+    <rect x="144" y="155" width="72" height="22" rx="7" fill="#ffffff" stroke="rgba(63, 136, 197, 0.18)" stroke-width="1" />
+    <text x="154" y="170" font-family="'Inter', sans-serif" font-size="10.5" font-weight="600" fill="#334155">Spring Boot</text>
+    <rect x="223" y="155" width="56" height="22" rx="7" fill="#ffffff" stroke="rgba(63, 136, 197, 0.18)" stroke-width="1" />
+    <text x="233" y="170" font-family="'Inter', sans-serif" font-size="10.5" font-weight="600" fill="#334155">SQL DB</text>
+
+    <!-- Rating / Progress Bar -->
+    <rect x="75" y="195" width="180" height="7" rx="3.5" fill="#e2e8f0" />
+    <rect x="75" y="195" width="162" height="7" rx="3.5" fill="url(#primaryGrad)" />
+    <text x="268" y="202" font-family="'Inter', sans-serif" font-size="11" font-weight="800" fill="#3F88C5">94/100</text>
+    <text x="75" y="219" font-family="'Inter', sans-serif" font-size="10" font-weight="600" fill="#94a3b8">Đánh giá Barem chuẩn mực</text>
+  </g>
+
+  <!-- Card 2: Dark Frosted Glass Interview Schedule (Bottom Right) -->
+  <g filter="url(#glassShadow)">
+    <rect x="230" y="200" width="295" height="195" rx="20" fill="url(#glassDark)" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1.5" />
+    
+    <rect x="252" y="222" width="36" height="36" rx="10" fill="rgba(63, 136, 197, 0.2)" stroke="rgba(63, 136, 197, 0.35)" stroke-width="1" />
+    <!-- Calendar Icon -->
+    <rect x="260" y="230" width="20" height="20" rx="4" stroke="#5ba0d6" stroke-width="2" fill="none" />
+    <line x1="260" y1="237" x2="280" y2="237" stroke="#5ba0d6" stroke-width="1.5" />
+    <circle cx="266" cy="242" r="1.5" fill="#ffffff" />
+    <circle cx="274" cy="242" r="1.5" fill="#ffffff" />
+    
+    <text x="298" y="237" font-family="'Inter', sans-serif" font-size="14" font-weight="800" fill="#ffffff">Lịch phỏng vấn mới</text>
+    <text x="298" y="253" font-family="'Inter', sans-serif" font-size="11.5" font-weight="600" fill="#94a3b8">Hội đồng: HR &amp; Tech Lead</text>
+
+    <!-- Meeting Details Box -->
+    <rect x="252" y="272" width="250" height="46" rx="12" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
+    <text x="268" y="292" font-family="'Inter', sans-serif" font-size="12" font-weight="700" fill="#ffffff">Vòng 2: Phỏng vấn Kỹ thuật</text>
+    <text x="268" y="307" font-family="'Inter', sans-serif" font-size="11" font-weight="500" fill="#82b8e3">14:30 - Thứ Năm · Phòng họp 302</text>
+
+    <!-- Glassmorphic Action Pills -->
+    <rect x="252" y="332" width="115" height="34" rx="10" fill="url(#blueBadge)" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1" />
+    <text x="274" y="353" font-family="'Inter', sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">Xác nhận lịch</text>
+
+    <rect x="375" y="332" width="95" height="34" rx="10" fill="rgba(255, 255, 255, 0.08)" stroke="rgba(255, 255, 255, 0.16)" stroke-width="1" />
+    <text x="395" y="353" font-family="'Inter', sans-serif" font-size="11.5" font-weight="600" fill="#cbd5e1">Gửi Email</text>
+  </g>
+
+  <!-- Card 3: Metrics Glass Badge (Top Right) -->
+  <g filter="url(#glassShadow)">
+    <rect x="370" y="30" width="180" height="85" rx="16" fill="url(#glassLight)" stroke="rgba(255, 255, 255, 0.85)" stroke-width="1.5" />
+    <circle cx="400" cy="65" r="18" fill="#e8f2fa" />
+    <!-- Trend Arrow -->
+    <path d="M393 68L399 62L403 66L408 60" stroke="#3F88C5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M404 60H408V64" stroke="#3F88C5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    <text x="428" y="58" font-family="'Inter', sans-serif" font-size="18" font-weight="900" fill="#132b45">98.5%</text>
+    <text x="428" y="73" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#3F88C5">Tỷ lệ Onboarding</text>
+  </g>
+
+  <!-- Glass connection nodes -->
+  <circle cx="210" cy="245" r="4" fill="#3F88C5" />
+  <circle cx="210" cy="245" r="9" stroke="#3F88C5" stroke-width="1.5" stroke-opacity="0.4" fill="none" />
+  <line x1="210" y1="245" x2="230" y2="245" stroke="#3F88C5" stroke-width="1.5" stroke-dasharray="3 3" />
+</svg>

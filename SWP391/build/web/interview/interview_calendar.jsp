@@ -94,8 +94,10 @@
                                 </c:choose>
                             </td>
                             <td>
-                                <a class="iv-btn iv-btn-sm iv-btn-ghost" href="${pageContext.request.contextPath}/interview-evaluation?interviewId=${iv.interviewId}">Chấm điểm</a>
-                                <a class="iv-btn iv-btn-sm iv-btn-ghost" href="${pageContext.request.contextPath}/apply-conclusion?applyId=${iv.applyId}">Kết luận</a>
+                                <div style="display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:120px;">
+                                    <a class="iv-btn iv-btn-sm" style="justify-content:center; width:100%; box-sizing:border-box; white-space:nowrap; margin:0;" href="${pageContext.request.contextPath}/interview-evaluation?interviewId=${iv.interviewId}">Chấm điểm</a>
+                                    <a class="iv-btn iv-btn-sm" style="justify-content:center; width:100%; box-sizing:border-box; white-space:nowrap; margin:0;" href="${pageContext.request.contextPath}/apply-conclusion?applyId=${iv.applyId}">Kết luận</a>
+                                </div>
                             </td>
                         </tr>
                     </c:forEach>

@@ -1,8 +1,4 @@
-<<<<<<< ours
-package controller.JobPost;
-=======
 package controller;
->>>>>>> theirs
 
 import dal.ApplyDAO;
 import dal.CVDAO;
@@ -24,10 +20,12 @@ import model.CVModel;
 import model.CandidateModel;
 import model.JobPostModel;
 import tool.EncodePassword;
-<<<<<<< ours
-=======
 import java.time.LocalDate;
->>>>>>> theirs
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+import tool.InputValidator;
 
 /**
  * Public "ứng tuyển" form - no login required. Looks up (or creates) the
@@ -38,6 +36,10 @@ import java.time.LocalDate;
 @WebServlet("/apply")
 @MultipartConfig(maxFileSize = 10 * 1024 * 1024) // 10 MB
 public class ApplyPublicServlet extends HttpServlet {
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    private static final List<String> GENDERS = List.of("Nam", "Nữ", "Khác");
+    private static final List<String> CV_EXTENSIONS = List.of(".pdf", ".doc", ".docx");
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -70,12 +72,12 @@ public class ApplyPublicServlet extends HttpServlet {
         String phone = trim(request.getParameter("phone"));
         String nationality = trim(request.getParameter("nationality"));
         String position = trim(request.getParameter("position"));
-        String numberExpStr = request.getParameter("numberExp");
+        String numberExpStr = trim(request.getParameter("numberExp"));
         String education = trim(request.getParameter("education"));
         String field = trim(request.getParameter("field"));
-        String currentSalaryStr = request.getParameter("currentSalary");
-        String birthdayStr = request.getParameter("birthday");
-        String gender = request.getParameter("gender");
+        String currentSalaryStr = trim(request.getParameter("currentSalary"));
+        String birthdayStr = trim(request.getParameter("birthday"));
+        String gender = trim(request.getParameter("gender"));
         String note = trim(request.getParameter("note"));
 
         JobPostDAO jobPostDAO = new JobPostDAO();
@@ -87,8 +89,79 @@ public class ApplyPublicServlet extends HttpServlet {
             return;
         }
 
-        if (candidateName.isEmpty() || email.isEmpty() || phone.isEmpty()) {
-            forwardWithError(request, response, job, "Vui lòng nhập đầy đủ Họ tên, Email và Số điện thoại.");
+        // ---- Validation: every field of the form is required ----
+        Part cvPart = request.getPart("cvFile");
+        List<String> missing = new ArrayList<>();
+        if (candidateName.isEmpty()) missing.add("Họ và tên");
+        if (email.isEmpty()) missing.add("Email");
+        if (phone.isEmpty()) missing.add("Số điện thoại");
+        if (address.isEmpty()) missing.add("Địa chỉ");
+        if (nationality.isEmpty()) missing.add("Quốc tịch");
+        if (position.isEmpty()) missing.add("Vị trí ứng tuyển");
+        if (numberExpStr.isEmpty()) missing.add("Số năm kinh nghiệm");
+        if (currentSalaryStr.isEmpty()) missing.add("Lương hiện tại / mong muốn");
+        if (education.isEmpty()) missing.add("Học vấn");
+        if (field.isEmpty()) missing.add("Chuyên ngành / Lĩnh vực");
+        if (birthdayStr.isEmpty()) missing.add("Ngày sinh");
+        if (gender.isEmpty()) missing.add("Giới tính");
+        if (cvPart == null || cvPart.getSize() == 0) missing.add("File CV");
+        if (note.isEmpty()) missing.add("Lời nhắn / Cover note");
+        if (!missing.isEmpty()) {
+            forwardWithError(request, response, job,
+                    "Vui lòng điền đầy đủ các mục bắt buộc: " + String.join(", ", missing) + ".");
+            return;
+        }
+
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            forwardWithError(request, response, job, "Email không hợp lệ.");
+            return;
+        }
+        if (!InputValidator.isValidPhone(phone)) {
+            forwardWithError(request, response, job, "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0.");
+            return;
+        }
+        if (!GENDERS.contains(gender)) {
+            forwardWithError(request, response, job, "Giới tính không hợp lệ.");
+            return;
+        }
+
+        Integer numberExp;
+        try {
+            numberExp = Integer.valueOf(numberExpStr);
+        } catch (NumberFormatException e) {
+            numberExp = null;
+        }
+        if (numberExp == null || numberExp < 0) {
+            forwardWithError(request, response, job, "Số năm kinh nghiệm phải là số nguyên không âm.");
+            return;
+        }
+
+        BigDecimal currentSalary;
+        try {
+            currentSalary = new BigDecimal(currentSalaryStr);
+        } catch (NumberFormatException e) {
+            currentSalary = null;
+        }
+        if (currentSalary == null || currentSalary.signum() < 0) {
+            forwardWithError(request, response, job, "Lương phải là số không âm.");
+            return;
+        }
+
+        LocalDate birthday;
+        try {
+            birthday = LocalDate.parse(birthdayStr);
+        } catch (DateTimeParseException e) {
+            forwardWithError(request, response, job, "Ngày sinh không hợp lệ.");
+            return;
+        }
+        if (birthday.isAfter(LocalDate.now())) {
+            forwardWithError(request, response, job, "Ngày sinh không được lớn hơn ngày hiện tại.");
+            return;
+        }
+
+        String cvName = cvPart.getSubmittedFileName() == null ? "" : cvPart.getSubmittedFileName().toLowerCase();
+        if (CV_EXTENSIONS.stream().noneMatch(cvName::endsWith)) {
+            forwardWithError(request, response, job, "File CV chỉ nhận định dạng PDF, DOC hoặc DOCX.");
             return;
         }
 
@@ -128,28 +201,12 @@ public class ApplyPublicServlet extends HttpServlet {
         cv.setFullName(candidateName);
         cv.setAddress(address);
         cv.setEmail(email);
-        cv.setPosition(position.isEmpty() ? job.getPosition() : position);
-        cv.setNumberExp(numberExpStr == null || numberExpStr.isBlank() ? null : Integer.parseInt(numberExpStr));
+        cv.setPosition(position);
+        cv.setNumberExp(numberExp);
         cv.setEducation(education);
         cv.setField(field);
-        cv.setCurrentSalary(currentSalaryStr == null || currentSalaryStr.isBlank() ? null : new BigDecimal(currentSalaryStr));
-<<<<<<< ours
-        cv.setBirthday(birthdayStr == null || birthdayStr.isBlank() ? null : Date.valueOf(birthdayStr));
-=======
-        if (birthdayStr != null && !birthdayStr.isBlank()) {
-            LocalDate birthday = LocalDate.parse(birthdayStr);
-            LocalDate today = LocalDate.now();
-
-            if (birthday.isAfter(today)) {
-                forwardWithError(request, response, job, "Ngày sinh không được lớn hơn ngày hiện tại.");
-                return;
-            }
-
-            cv.setBirthday(Date.valueOf(birthday));
-        } else {
-            cv.setBirthday(null);
-        }
->>>>>>> theirs
+        cv.setCurrentSalary(currentSalary);
+        cv.setBirthday(Date.valueOf(birthday));
         cv.setNationality(nationality);
         cv.setGender(gender);
         cv.setFileData(savedFileName);
