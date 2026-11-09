@@ -1,35 +1,25 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller;
 
+import dal.JobPostDAO;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
-
-/**
- *
- * @author admin
- */
+import java.util.List;
+import model.JobPostModel;
 
 @WebServlet("/home")
 public class HomeServlet extends HttpServlet {
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/index.jsp").forward(request, response);
+        List<JobPostModel> jobs = new JobPostDAO().getOpenJobPosts();
+        request.setAttribute("jobs", jobs);
+        request.setAttribute("featuredJobs", jobs.size() > 6 ? jobs.subList(0, 6) : jobs);
+        request.setAttribute("openJobCount", jobs.size());
+        request.getRequestDispatcher("/home.jsp").forward(request, response);
     }
 }

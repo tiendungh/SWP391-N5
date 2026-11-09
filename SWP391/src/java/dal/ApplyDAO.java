@@ -12,7 +12,8 @@ public class ApplyDAO extends DBContext {
     private static final String BASE_SELECT =
             "SELECT a.ApplyID, a.JobPostID, jp.Title AS JobTitle, "
             + "a.CandidateID, c.CandidateName, c.Email AS CandidateEmail, c.PhoneNumber AS CandidatePhone, "
-            + "a.CVID, cv.Position AS CvPosition, cv.NumberExp AS CvNumberExp, cv.Education AS CvEducation, "
+            + "a.CVID, cv.FullName AS CvFullName, cv.Address AS CvAddress, cv.Email AS CvEmail, "
+            + "cv.Position AS CvPosition, cv.NumberExp AS CvNumberExp, cv.Education AS CvEducation, "
             + "cv.Field AS CvField, cv.CurrentSalary AS CvCurrentSalary, cv.Birthday AS CvBirthday, "
             + "cv.Nationality AS CvNationality, cv.Gender AS CvGender, cv.FileData AS CvFileData, "
             + "a.Status, a.Note, a.FinalResult, a.ConclusionNote, a.ConclusionBy, cb.CandidateName AS ConclusionByName, "
@@ -193,6 +194,9 @@ public class ApplyDAO extends DBContext {
         a.setCandidateEmail(rs.getString("CandidateEmail"));
         a.setCandidatePhone(rs.getString("CandidatePhone"));
         a.setCvId(rs.getInt("CVID"));
+        a.setCvFullName(rs.getString("CvFullName"));
+        a.setCvAddress(rs.getString("CvAddress"));
+        a.setCvEmail(rs.getString("CvEmail"));
         a.setCvPosition(rs.getString("CvPosition"));
         int exp = rs.getInt("CvNumberExp");
         a.setCvNumberExp(rs.wasNull() ? null : exp);

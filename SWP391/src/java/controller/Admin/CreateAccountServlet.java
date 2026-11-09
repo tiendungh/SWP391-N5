@@ -90,7 +90,7 @@ public class CreateAccountServlet extends HttpServlet {
         }
 
         if (!InputValidator.isValidPhone(phone)) {
-            request.setAttribute("error", "Số điện thoại phải gồm đúng 10 chữ số.");
+            request.setAttribute("error", "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0.");
             doGet(request, response);
             return;
         }

@@ -36,20 +36,8 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                 <li><a href="home">Trang chủ</a></li>
-                                                <li><a href="jobs">Việc làm <i class="ti-angle-down"></i></a>
-                                                    <ul class="submenu">
-                                                        <li><a href="jobs">Tìm việc làm</a></li>
-                                                        <li><a href="saved_jobs">Việc làm đã lưu</a></li>
-                                                        <li><a href="viewApplyLog">Trạng thái ứng tuyển</a></li>
-                                                    </ul>
+                                                <li><a href="jobs">Việc làm</a>
                                                 </li>
-                                                <li><a href="#">CV <i class="ti-angle-down"></i></a>
-                                                    <ul class="submenu">
-                                                        <li><a href="create-cv">Tạo CV</a></li>
-                                                        <li><a href="list-cv">Quản lí CV</a></li>
-                                                    </ul>
-                                                </li>
-                                                <%-- Menu xem Tiến độ phòng ban khi đã đăng nhập --%>
                                                 <c:if test="${not empty sessionScope.user}">
                                                     <li><a href="${pageContext.request.contextPath}/leader-room?tab=progress">Tiến độ phòng ban</a></li>
                                                 </c:if>
@@ -62,8 +50,7 @@
                         <div class="col-xl-3 col-lg-3 col-5">
                             <div class="Appointment justify-content-end">
                                 <c:if test="${empty sessionScope.user}">
-                                    <div class="phone_num d-none d-sm-block"><a href="login.jsp">Đăng nhập</a></div>
-                                    <div class="d-none d-lg-block"><a class="boxed-btn3" href="viewPromotionPosts">Nhà tuyển dụng</a></div>
+                                    <div class="phone_num d-none d-sm-block"><a class="boxed-btn3" href="login.jsp">Đăng nhập</a></div>
                                 </c:if>
                                 <c:if test="${not empty sessionScope.user}">
                                     <div class="main-menu phone_num d-none d-sm-block">

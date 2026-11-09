@@ -104,6 +104,34 @@ public class JobPostDAO extends DBContext {
         return -1;
     }
 
+    /** Updates every editable field of a JD (CreatedBy / DayCreate are kept). Returns true if a row was updated. */
+    public boolean updateJobPost(JobPostModel j) {
+        if (c == null) return false;
+
+        String sql = "UPDATE JobPost SET Title = ?, Description = ?, Category = ?, Position = ?, Location = ?, "
+                + "OfferMin = ?, OfferMax = ?, NumberExp = ?, Visible = ?, TypeJob = ?, Deadline = ? "
+                + "WHERE JobPostID = ?";
+
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, j.getTitle());
+            ps.setString(2, j.getDescription());
+            ps.setString(3, j.getCategory());
+            ps.setString(4, j.getPosition());
+            ps.setString(5, j.getLocation());
+            ps.setBigDecimal(6, j.getOfferMin());
+            ps.setBigDecimal(7, j.getOfferMax());
+            if (j.getNumberExp() != null) ps.setInt(8, j.getNumberExp()); else ps.setNull(8, java.sql.Types.INTEGER);
+            ps.setBoolean(9, j.isVisible());
+            ps.setString(10, j.getTypeJob());
+            ps.setDate(11, j.getDeadline());
+            ps.setInt(12, j.getJobPostId());
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.err.println("JobPostDAO.updateJobPost error: " + e.getMessage());
+            return false;
+        }
+    }
+
     /** Opens or closes a JD for new applications (Visible flag). */
     public boolean setVisible(int jobPostId, boolean visible) {
         if (c == null) return false;

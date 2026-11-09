@@ -59,7 +59,7 @@
             <div class="iv-field">
                 <label>Số điện thoại *</label>
                 <input type="text" name="phone" placeholder="09xxxxxxxx" value="${prefill.phone}"
-                       pattern="\d{10}" title="Số điện thoại phải gồm đúng 10 chữ số" required/>
+                       inputmode="numeric" maxlength="10" pattern="0[0-9]{9}" title="Số điện thoại gồm đúng 10 chữ số và bắt đầu bằng số 0" required/>
             </div>
             <div class="iv-field">
                 <label>Vai trò *</label>

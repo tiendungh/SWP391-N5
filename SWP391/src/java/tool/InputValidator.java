@@ -8,13 +8,13 @@ import java.util.regex.Pattern;
  */
 public final class InputValidator {
 
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\d{10}$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^0\\d{9}$");
     public static final int TEXT_MAX_LENGTH = 100;
 
     private InputValidator() {
     }
 
-    /** Phone number must be exactly 10 digits, no spaces/dashes/letters. */
+    /** Phone number must be exactly 10 digits, start with 0, and contain no spaces/dashes/letters. */
     public static boolean isValidPhone(String phone) {
         return phone != null && PHONE_PATTERN.matcher(phone).matches();
     }

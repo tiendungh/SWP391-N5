@@ -32,7 +32,7 @@
         <div class="iv-form-row">
             <div class="iv-field">
                 <label>Số điện thoại</label>
-                <input type="text" name="phone" placeholder="09xxxxxxxx" pattern="\d{10}" title="Số điện thoại phải gồm đúng 10 chữ số"/>
+                <input type="text" name="phone" placeholder="09xxxxxxxx" inputmode="numeric" maxlength="10" pattern="0[0-9]{9}" title="Số điện thoại gồm đúng 10 chữ số và bắt đầu bằng số 0"/>
             </div>
             <div class="iv-field">
                 <label>Vai trò đề xuất</label>

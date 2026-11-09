@@ -8,7 +8,7 @@
 <div class="iv-topbar">
     <div>
         <h1>Yêu cầu tạo tài khoản từ Manager</h1>
-        <p>Manager không thể tự tạo tài khoản - họ gửi yêu cầu ở đây để Admin xem xét và tạo tài khoản thật.</p>
+        <p>Manager gửi yêu cầu ở đây để Admin xem xét và tạo tài khoản thật.</p>
     </div>
     <div class="iv-whoami">Xin chào, <c:out value="${sessionScope.adminUsername}"/></div>
 </div>

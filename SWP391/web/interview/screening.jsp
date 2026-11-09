@@ -16,7 +16,6 @@
 <c:if test="${param.updated == '1'}"><div class="iv-alert iv-alert-success">Đã cập nhật trạng thái các hồ sơ đã chọn.</div></c:if>
 
 <c:choose>
-    <%-- ================= No JD chosen: pick one ================= --%>
     <c:when test="${empty jobPostId}">
         <div class="iv-card">
             <h2>Chọn JD cần sơ lọc</h2>
@@ -48,7 +47,6 @@
         </div>
     </c:when>
 
-    <%-- ================= JD chosen: filter + list ================= --%>
     <c:otherwise>
         <div class="iv-card">
             <a href="${pageContext.request.contextPath}/screening" class="iv-btn iv-btn-sm iv-btn-ghost">← Chọn JD khác</a>
@@ -105,6 +103,7 @@
                                     <th>CV</th>
                                     <th>Trạng thái</th>
                                     <th>Ngày nộp</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -112,11 +111,11 @@
                                     <tr>
                                         <td><input type="checkbox" name="applyIds" value="${a.applyId}" class="rowCheck"/></td>
                                         <td>
-                                            <b>${a.candidateName}</b><br>
-                                            <span class="iv-small iv-muted">${a.candidateEmail} · ${a.candidatePhone}</span>
+                                            <b><c:out value="${a.candidateName}"/></b><br>
+                                            <span class="iv-small iv-muted"><c:out value="${a.candidateEmail}"/> · <c:out value="${a.candidatePhone}"/></span>
                                         </td>
                                         <td>${a.cvNumberExp} năm</td>
-                                        <td class="iv-small">${a.cvEducation}<br><span class="iv-muted">${a.cvField}</span></td>
+                                        <td class="iv-small"><c:out value="${a.cvEducation}"/><br><span class="iv-muted"><c:out value="${a.cvField}"/></span></td>
                                         <td>${a.cvCurrentSalary}</td>
                                         <td>
                                             <c:choose>
@@ -134,6 +133,25 @@
                                             </c:choose>
                                         </td>
                                         <td class="iv-small"><fmt:formatDate value="${a.dayCreate}" pattern="dd/MM/yyyy"/></td>
+                                        <td>
+                                            <button type="button" class="iv-btn iv-btn-sm btn-detail"
+                                                    data-name="<c:out value='${empty a.cvFullName ? a.candidateName : a.cvFullName}'/>"
+                                                    data-email="<c:out value='${empty a.cvEmail ? a.candidateEmail : a.cvEmail}'/>"
+                                                    data-phone="<c:out value='${a.candidatePhone}'/>"
+                                                    data-address="<c:out value='${a.cvAddress}'/>"
+                                                    data-nationality="<c:out value='${a.cvNationality}'/>"
+                                                    data-position="<c:out value='${a.cvPosition}'/>"
+                                                    data-exp="<c:out value='${a.cvNumberExp}'/>"
+                                                    data-salary="<c:out value='${a.cvCurrentSalary}'/>"
+                                                    data-education="<c:out value='${a.cvEducation}'/>"
+                                                    data-field="<c:out value='${a.cvField}'/>"
+                                                    data-birthday="<fmt:formatDate value='${a.cvBirthday}' pattern='dd/MM/yyyy'/>"
+                                                    data-gender="<c:out value='${a.cvGender}'/>"
+                                                    data-note="<c:out value='${a.note}'/>"
+                                                    data-file="<c:if test='${not empty a.cvFileData}'>${pageContext.request.contextPath}/uploads/cv/<c:out value='${a.cvFileData}'/></c:if>"
+                                                    data-status="<c:out value='${a.status}'/>"
+                                                    data-created="<fmt:formatDate value='${a.dayCreate}' pattern='dd/MM/yyyy HH:mm'/>">Xem chi tiết</button>
+                                        </td>
                                     </tr>
                                 </c:forEach>
                             </tbody>
@@ -150,6 +168,57 @@
     </c:otherwise>
 </c:choose>
 
+<style>
+    .cd-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+    .cd-overlay[hidden] { display: none; }
+    .cd-modal { background: #fff; border-radius: 12px; width: 100%; max-width: 720px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0, 0, 0, .3); }
+    .cd-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e2e8f0; }
+    .cd-head h2 { margin: 0; font-size: 1.15rem; }
+    .cd-close { border: 0; background: transparent; font-size: 1.6rem; line-height: 1; cursor: pointer; color: #64748b; }
+    .cd-body { padding: 8px 20px 20px; overflow-y: auto; }
+    .cd-section { margin: 16px 0 8px; font-weight: 700; color: #1e3a8a; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; }
+    .cd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin: 0; }
+    .cd-grid dt { font-size: .78rem; color: #64748b; margin: 0 0 2px; }
+    .cd-grid dd { margin: 0; font-size: .95rem; color: #0f172a; word-break: break-word; white-space: pre-wrap; }
+    .cd-wide { grid-column: 1 / -1; }
+    @media (max-width: 600px) { .cd-grid { grid-template-columns: 1fr; } }
+</style>
+<div id="cdOverlay" class="cd-overlay" hidden>
+    <div class="cd-modal" role="dialog" aria-modal="true" aria-labelledby="cdTitle">
+        <div class="cd-head">
+            <h2 id="cdTitle">Thông tin ứng viên đã điền</h2>
+            <button type="button" class="cd-close" id="cdClose" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="cd-body">
+            <div class="cd-section">Thông tin liên hệ</div>
+            <dl class="cd-grid">
+                <div><dt>Họ và tên</dt><dd data-f="name"></dd></div>
+                <div><dt>Email</dt><dd data-f="email"></dd></div>
+                <div><dt>Số điện thoại</dt><dd data-f="phone"></dd></div>
+                <div><dt>Quốc tịch</dt><dd data-f="nationality"></dd></div>
+                <div class="cd-wide"><dt>Địa chỉ</dt><dd data-f="address"></dd></div>
+            </dl>
+            <div class="cd-section">Thông tin ứng tuyển</div>
+            <dl class="cd-grid">
+                <div><dt>Vị trí ứng tuyển</dt><dd data-f="position"></dd></div>
+                <div><dt>Số năm kinh nghiệm</dt><dd data-f="exp"></dd></div>
+                <div><dt>Lương hiện tại / mong muốn</dt><dd data-f="salary"></dd></div>
+                <div><dt>Ngày sinh</dt><dd data-f="birthday"></dd></div>
+                <div><dt>Giới tính</dt><dd data-f="gender"></dd></div>
+                <div><dt>Học vấn</dt><dd data-f="education"></dd></div>
+                <div class="cd-wide"><dt>Chuyên ngành / Lĩnh vực</dt><dd data-f="field"></dd></div>
+                <div class="cd-wide"><dt>Lời nhắn / Cover note</dt><dd data-f="note"></dd></div>
+            </dl>
+            <div class="cd-section">Hồ sơ</div>
+            <dl class="cd-grid">
+                <div><dt>File CV</dt><dd><a id="cdFile" href="#" target="_blank" rel="noopener">Xem file</a><span id="cdNoFile">Không có file</span></dd></div>
+                <div><dt>Trạng thái</dt><dd data-f="status"></dd></div>
+                <div><dt>Ngày nộp</dt><dd data-f="created"></dd></div>
+            </dl>
+        </div>
+    </div>
+</div>
+
 <script>
     var checkAll = document.getElementById('checkAll');
     if (checkAll) {
@@ -157,6 +226,42 @@
             document.querySelectorAll('.rowCheck').forEach(function (cb) { cb.checked = checkAll.checked; });
         });
     }
+
+    (function () {
+        var overlay = document.getElementById('cdOverlay');
+        if (!overlay) return;
+        var statusLabels = {Pending: 'Chưa xử lý', Shortlisted: 'Đã Pass', Rejected: 'Đã loại'};
+
+        function openDetail(btn) {
+            var d = btn.dataset;
+            overlay.querySelectorAll('[data-f]').forEach(function (el) {
+                var key = el.getAttribute('data-f');
+                var v = (d[key] || '').trim();
+                if (key === 'status') v = statusLabels[v] || v;
+                if (key === 'exp' && v) v += ' năm';
+                el.textContent = v || '—';
+            });
+            var link = document.getElementById('cdFile');
+            var noFile = document.getElementById('cdNoFile');
+            if (d.file) {
+                link.href = d.file;
+                link.style.display = '';
+                noFile.style.display = 'none';
+            } else {
+                link.style.display = 'none';
+                noFile.style.display = '';
+            }
+            overlay.hidden = false;
+        }
+        function closeDetail() { overlay.hidden = true; }
+
+        document.querySelectorAll('.btn-detail').forEach(function (btn) {
+            btn.addEventListener('click', function () { openDetail(btn); });
+        });
+        document.getElementById('cdClose').addEventListener('click', closeDetail);
+        overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDetail(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDetail(); });
+    })();
 </script>
 
 <jsp:include page="staff_footer.jsp"/>

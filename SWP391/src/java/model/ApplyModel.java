@@ -12,6 +12,9 @@ public class ApplyModel {
     private String candidateEmail;
     private String candidatePhone;
     private int cvId;
+    private String cvFullName;
+    private String cvAddress;
+    private String cvEmail;
     private String cvPosition;
     private Integer cvNumberExp;
     private String cvEducation;
@@ -93,6 +96,30 @@ public class ApplyModel {
 
     public void setCvId(int cvId) {
         this.cvId = cvId;
+    }
+
+    public String getCvFullName() {
+        return cvFullName;
+    }
+
+    public void setCvFullName(String cvFullName) {
+        this.cvFullName = cvFullName;
+    }
+
+    public String getCvAddress() {
+        return cvAddress;
+    }
+
+    public void setCvAddress(String cvAddress) {
+        this.cvAddress = cvAddress;
+    }
+
+    public String getCvEmail() {
+        return cvEmail;
+    }
+
+    public void setCvEmail(String cvEmail) {
+        this.cvEmail = cvEmail;
     }
 
     public String getCvPosition() {
