@@ -31,7 +31,14 @@
                             <c:forEach var="j" items="${jobPosts}">
                                 <tr>
                                     <td><b>${j.title}</b><br><span class="iv-small iv-muted">${j.category} · ${j.location}</span></td>
-                                    <td><span class="iv-badge iv-badge-blue">${j.applyCount}</span></td>
+                                    <td>
+                                        <span class="iv-badge iv-badge-blue">${j.pendingCount} chờ sơ lọc</span>
+                                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                                            <span class="iv-badge iv-badge-green">${j.passedCount} đã pass</span>
+                                            <span class="iv-badge iv-badge-red">${j.rejectedCount} đã loại</span>
+                                        </div>
+                                        <div class="iv-small iv-muted" style="margin-top:6px;">Tổng ${j.applyCount} hồ sơ</div>
+                                    </td>
                                     <td>
                                         <c:choose>
                                             <c:when test="${j.visible}"><span class="iv-badge iv-badge-green">Đang mở</span></c:when>

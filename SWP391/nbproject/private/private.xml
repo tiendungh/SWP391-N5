@@ -2,16 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/src/java/tool/InputValidator.java</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/web/interview/interview_calendar.jsp</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/src/java/model/ApplyModel.java</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/src/java/controller/JobPost/ApplyPublicServlet.java</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/src/java/controller/JobPost/JobPostServlet.java</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/web/interview/screening.jsp</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/src/java/dal/ApplyDAO.java</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/src/java/dal/JobPostDAO.java</file>
-            <file>file:/D:/Code/SWP391/SWP391-N5/SWP391/web/interview/jobpost_manage.jsp</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

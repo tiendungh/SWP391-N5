@@ -17,12 +17,16 @@
 <c:if test="${param.created == '1'}"><div class="iv-alert iv-alert-success">Đã tạo JD mới thành công.</div></c:if>
 <c:if test="${param.updated == '1'}"><div class="iv-alert iv-alert-success">Đã cập nhật JD thành công.</div></c:if>
 
-<div class="iv-grid-2" style="grid-template-columns: 1.7fr 1fr;">
-    <div class="iv-card">
-        <h2>Danh sách JD (${jobPosts.size()})</h2>
+<%-- Stacked layout: list (full width) + form (full width). While editing, the form moves to the top. --%>
+<div style="display:flex; flex-direction:column;">
+    <div class="iv-card" style="order:1;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+            <h2 style="margin:0;">Danh sách JD (${jobPosts.size()})</h2>
+            <a href="${pageContext.request.contextPath}/job-post#jd-form" class="iv-btn iv-btn-sm">+ Tạo JD mới</a>
+        </div>
         <c:choose>
             <c:when test="${empty jobPosts}">
-                <div class="iv-empty">Chưa có JD nào. Tạo JD đầu tiên bên phải.</div>
+                <div class="iv-empty">Chưa có JD nào. Tạo JD đầu tiên ở form bên dưới.</div>
             </c:when>
             <c:otherwise>
                 <table class="iv-table">
@@ -65,37 +69,35 @@
         </c:choose>
     </div>
 
-    <div class="iv-card" id="jd-form">
+    <div class="iv-card" id="jd-form" style="order:${editMode ? 0 : 2};">
         <h2>${editMode ? 'Sửa JD' : 'Tạo JD mới'}</h2>
+        <p style="margin:0 0 14px; color:#64748b; font-size:0.9rem;">Tất cả các mục đánh dấu <b style="color:#dc2626;">*</b> đều bắt buộc phải điền.</p>
         <form method="post" action="${pageContext.request.contextPath}/job-post">
             <input type="hidden" name="action" value="${editMode ? 'update' : 'create'}"/>
             <c:if test="${editMode}"><input type="hidden" name="jobPostId" value="${formJob.jobPostId}"/></c:if>
-            <div class="iv-field" style="margin-bottom:14px;">
-                <label>Tiêu đề *</label>
-                <input type="text" name="title" placeholder="Vd: Tuyển Java Developer" value="<c:out value='${formJob.title}'/>" required/>
-            </div>
-            <div class="iv-field" style="margin-bottom:14px;">
-                <label>Mô tả công việc *</label>
-                <textarea name="description" placeholder="Mô tả chi tiết công việc, yêu cầu..." style="min-height:110px;" required><c:out value="${formJob.description}"/></textarea>
-            </div>
+
             <div class="iv-form-row">
-                <div class="iv-field">
-                    <label>Phòng ban / Category</label>
-                    <input type="text" name="category" placeholder="IT, Human Resources, Finance..." value="<c:out value='${formJob.category}'/>"/>
+                <div class="iv-field" style="flex:2;">
+                    <label>Tiêu đề *</label>
+                    <input type="text" name="title" placeholder="Vd: Tuyển Java Developer" value="<c:out value='${formJob.title}'/>" required/>
                 </div>
-                <div class="iv-field">
-                    <label>Vị trí (Position)</label>
-                    <input type="text" name="position" placeholder="Java Developer" value="<c:out value='${formJob.position}'/>"/>
-                </div>
-            </div>
-            <div class="iv-form-row">
                 <div class="iv-field">
                     <label>Địa điểm *</label>
                     <input type="text" name="location" placeholder="Hà Nội, Việt Nam" value="<c:out value='${formJob.location}'/>" required/>
                 </div>
+            </div>
+            <div class="iv-form-row">
                 <div class="iv-field">
-                    <label>Loại hình</label>
-                    <select name="typeJob">
+                    <label>Phòng ban / Category *</label>
+                    <input type="text" name="category" placeholder="IT, Human Resources, Finance..." value="<c:out value='${formJob.category}'/>" required/>
+                </div>
+                <div class="iv-field">
+                    <label>Vị trí (Position) *</label>
+                    <input type="text" name="position" placeholder="Java Developer" value="<c:out value='${formJob.position}'/>" required/>
+                </div>
+                <div class="iv-field">
+                    <label>Loại hình *</label>
+                    <select name="typeJob" required>
                         <option value="Full-time" ${formJob.typeJob == 'Full-time' ? 'selected' : ''}>Full-time</option>
                         <option value="Part-time" ${formJob.typeJob == 'Part-time' ? 'selected' : ''}>Part-time</option>
                         <option value="Internship" ${formJob.typeJob == 'Internship' ? 'selected' : ''}>Thực tập</option>
@@ -105,35 +107,53 @@
             </div>
             <div class="iv-form-row">
                 <div class="iv-field">
-                    <label>Lương tối thiểu</label>
-                    <input type="number" name="offerMin" min="0" step="0.01" placeholder="1000" value="${formJob.offerMin}"/>
+                    <label>Lương tối thiểu *</label>
+                    <input type="number" name="offerMin" min="0" step="0.01" placeholder="1000" value="${formJob.offerMin}" required/>
                 </div>
                 <div class="iv-field">
-                    <label>Lương tối đa</label>
-                    <input type="number" name="offerMax" min="0" step="0.01" placeholder="2000" value="${formJob.offerMax}"/>
+                    <label>Lương tối đa *</label>
+                    <input type="number" name="offerMax" min="0" step="0.01" placeholder="2000" value="${formJob.offerMax}" required/>
                 </div>
                 <div class="iv-field">
-                    <label>Kinh nghiệm tối thiểu (năm)</label>
-                    <input type="number" name="numberExp" min="0" step="1" placeholder="1" value="${formJob.numberExp}"/>
+                    <label>Kinh nghiệm tối thiểu (năm) *</label>
+                    <input type="number" name="numberExp" min="0" step="1" placeholder="1" value="${formJob.numberExp}" required/>
+                </div>
+                <div class="iv-field">
+                    <label>Hạn nộp hồ sơ *</label>
+                    <input type="date" name="deadline" ${editMode ? '' : 'min="'.concat(today).concat('"')} value="<fmt:formatDate value='${formJob.deadline}' pattern='yyyy-MM-dd'/>" required/>
                 </div>
             </div>
-            <div class="iv-form-row">
-                <div class="iv-field">
-                    <label>Hạn nộp hồ sơ</label>
-                    <input type="date" name="deadline" value="<fmt:formatDate value='${formJob.deadline}' pattern='yyyy-MM-dd'/>"/>
-                </div>
-                <div class="iv-field" style="justify-content:center;">
-                    <label style="display:flex;align-items:center;gap:8px;margin-top:14px;">
-                        <input type="checkbox" name="visible" ${empty formJob || formJob.visible ? 'checked' : ''} style="width:auto;"/> Hiển thị công khai
-                    </label>
-                </div>
+            <div class="iv-field" style="margin-bottom:14px;">
+                <label>Mô tả công việc *</label>
+                <textarea name="description" placeholder="Mô tả chi tiết công việc, yêu cầu..." style="min-height:150px;" required><c:out value="${formJob.description}"/></textarea>
             </div>
-            <button type="submit" class="iv-btn">${editMode ? 'Lưu thay đổi' : 'Tạo JD'}</button>
-            <c:if test="${editMode}">
-                <a href="${pageContext.request.contextPath}/job-post" class="iv-btn iv-btn-ghost">Hủy sửa</a>
-            </c:if>
+            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <button type="submit" class="iv-btn">${editMode ? 'Lưu thay đổi' : 'Tạo JD'}</button>
+                <c:if test="${editMode}">
+                    <a href="${pageContext.request.contextPath}/job-post" class="iv-btn iv-btn-ghost">Hủy sửa</a>
+                </c:if>
+                <label style="display:flex; align-items:center; gap:8px; margin:0;">
+                    <input type="checkbox" name="visible" ${empty formJob || formJob.visible ? 'checked' : ''} style="width:auto;"/> Hiển thị công khai
+                </label>
+            </div>
         </form>
     </div>
 </div>
+
+<script>
+    // Salary range: minimum must be lower than maximum
+    (function () {
+        var min = document.querySelector('[name=offerMin]');
+        var max = document.querySelector('[name=offerMax]');
+        if (!min || !max) return;
+        function check() {
+            var a = parseFloat(min.value), b = parseFloat(max.value);
+            max.setCustomValidity(!isNaN(a) && !isNaN(b) && a >= b ? 'Lương tối đa phải lớn hơn lương tối thiểu' : '');
+        }
+        min.addEventListener('input', check);
+        max.addEventListener('input', check);
+        check();
+    })();
+</script>
 
 <jsp:include page="staff_footer.jsp"/>

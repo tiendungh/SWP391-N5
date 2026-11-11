@@ -91,7 +91,7 @@
                             <label>Barem đánh giá *</label>
                             <select name="baremId" required ${empty baremsForJob ? 'disabled' : ''}>
                                 <c:forEach var="b" items="${baremsForJob}">
-                                    <option value="${b.baremId}">${b.baremName} (tổng ${b.totalScore} điểm)</option>
+                                    <option value="${b.baremId}" ${param.baremId == b.baremId ? 'selected' : ''}>${b.baremName} (tổng ${b.totalScore} điểm)</option>
                                 </c:forEach>
                             </select>
                             <span class="iv-hint">
@@ -100,7 +100,7 @@
                         </div>
                         <div class="iv-field">
                             <label>Vòng phỏng vấn</label>
-                            <input type="number" name="interviewRound" min="1" value="${nextRound}" required ${empty baremsForJob ? 'disabled' : ''}/>
+                            <input type="number" name="interviewRound" min="1" value="${empty param.interviewRound ? nextRound : param.interviewRound}" required ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
                     </div>
 
@@ -110,6 +110,7 @@
                             <input type="date"
                                    name="interviewDate"
                                    id="interviewDate"
+                                   value="<c:out value='${param.interviewDate}'/>"
                                    required
                                    ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
@@ -118,6 +119,7 @@
                             <input type="time"
                                    name="startTime"
                                    id="startTime"
+                                   value="<c:out value='${param.startTime}'/>"
                                    required
                                    ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
@@ -126,6 +128,7 @@
                             <input type="time"
                                    name="endTime"
                                    id="endTime"
+                                   value="<c:out value='${param.endTime}'/>"
                                    required
                                    ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
@@ -134,25 +137,25 @@
                     <div class="iv-form-row">
                         <div class="iv-field">
                             <label>Hình thức *</label>
-                            <select name="interviewType" required ${empty baremsForJob ? 'disabled' : ''}>
-                                <option value="Offline">Trực tiếp (Offline)</option>
-                                <option value="Online">Trực tuyến (Online)</option>
-                                <option value="Phone">Điện thoại</option>
+                            <select name="interviewType" id="interviewType" required ${empty baremsForJob ? 'disabled' : ''}>
+                                <option value="Offline" ${param.interviewType == 'Offline' || empty param.interviewType ? 'selected' : ''}>Trực tiếp (Offline)</option>
+                                <option value="Online" ${param.interviewType == 'Online' ? 'selected' : ''}>Trực tuyến (Online)</option>
+                                <option value="Phone" ${param.interviewType == 'Phone' ? 'selected' : ''}>Điện thoại</option>
                             </select>
                         </div>
-                        <div class="iv-field">
-                            <label>Địa điểm</label>
-                            <input type="text" name="location" placeholder="Phòng họp / Địa chỉ" ${empty baremsForJob ? 'disabled' : ''}/>
+                        <div class="iv-field" id="locationField">
+                            <label>Địa chỉ phỏng vấn *</label>
+                            <input type="text" name="location" id="location" placeholder="Phòng họp / Địa chỉ" value="<c:out value='${param.location}'/>" ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
-                        <div class="iv-field">
-                            <label>Link họp trực tuyến</label>
-                            <input type="text" name="meetingLink" placeholder="https://meet..." ${empty baremsForJob ? 'disabled' : ''}/>
+                        <div class="iv-field" id="meetingLinkField">
+                            <label>Link họp trực tuyến *</label>
+                            <input type="url" name="meetingLink" id="meetingLink" placeholder="https://meet.google.com/..." value="<c:out value='${param.meetingLink}'/>" ${empty baremsForJob ? 'disabled' : ''}/>
                         </div>
                     </div>
 
                     <div class="iv-field" style="margin-bottom:14px;">
                         <label>Ghi chú</label>
-                        <textarea name="note" placeholder="Ghi chú cho buổi phỏng vấn..." ${empty baremsForJob ? 'disabled' : ''}></textarea>
+                        <textarea name="note" placeholder="Ghi chú cho buổi phỏng vấn..." ${empty baremsForJob ? 'disabled' : ''}><c:out value="${param.note}"/></textarea>
                     </div>
 
                     <h3>Người tham gia phỏng vấn *</h3>
@@ -162,10 +165,10 @@
                         <tbody>
                             <c:forEach var="s" items="${allStaff}">
                                 <tr>
-                                    <td><input type="checkbox" name="participantIds" value="${s.staffId}" ${empty baremsForJob ? 'disabled' : ''}/></td>
+                                    <td><input type="checkbox" name="participantIds" value="${s.staffId}" ${selectedParticipantIds.contains(s.staffId) ? 'checked' : ''} ${empty baremsForJob ? 'disabled' : ''}/></td>
                                     <td>${s.fullName}</td>
                                     <td><span class="iv-badge iv-badge-gray">${s.roleName}</span></td>
-                                    <td><input type="radio" name="leadInterviewerId" value="${s.staffId}" ${empty baremsForJob ? 'disabled' : ''}/></td>
+                                    <td><input type="radio" name="leadInterviewerId" value="${s.staffId}" ${selectedLeadId == s.staffId ? 'checked' : ''} ${empty baremsForJob ? 'disabled' : ''}/></td>
                                 </tr>
                             </c:forEach>
                         </tbody>
@@ -224,6 +227,7 @@
         const dateInput = document.getElementById("interviewDate");
         const startInput = document.getElementById("startTime");
         const endInput = document.getElementById("endTime");
+        if (!dateInput) return;   // worklist mode: no form on the page
 
         const now = new Date();
 
@@ -252,6 +256,24 @@
 
         startInput.addEventListener("change", validateTime);
         endInput.addEventListener("change", validateTime);
+
+        // Meeting format: Online -> link required, Offline -> address required, Phone -> neither
+        const typeSelect = document.getElementById("interviewType");
+        const locationField = document.getElementById("locationField");
+        const linkField = document.getElementById("meetingLinkField");
+        const locationInput = document.getElementById("location");
+        const linkInput = document.getElementById("meetingLink");
+        function applyType() {
+            const type = typeSelect.value;
+            const offline = type === "Offline";
+            const online = type === "Online";
+            locationField.style.display = offline ? "" : "none";
+            linkField.style.display = online ? "" : "none";
+            locationInput.required = offline;
+            linkInput.required = online;
+        }
+        typeSelect.addEventListener("change", applyType);
+        applyType();
 
         dateInput.addEventListener("change", function () {
             if (dateInput.value < today) {
