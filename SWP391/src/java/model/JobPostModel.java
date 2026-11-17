@@ -22,6 +22,9 @@ public class JobPostModel {
     private Integer createdBy;
     private String createdByName;
     private int applyCount;
+    private int pendingCount;
+    private int passedCount;
+    private int rejectedCount;
 
     public int getJobPostId() {
         return jobPostId;
@@ -141,6 +144,33 @@ public class JobPostModel {
 
     public void setCreatedByName(String createdByName) {
         this.createdByName = createdByName;
+    }
+
+    /** Applications still waiting for the screening decision. */
+    public int getPendingCount() {
+        return pendingCount;
+    }
+
+    public void setPendingCount(int pendingCount) {
+        this.pendingCount = pendingCount;
+    }
+
+    /** Applications that passed screening (including those already interviewed / concluded). */
+    public int getPassedCount() {
+        return passedCount;
+    }
+
+    public void setPassedCount(int passedCount) {
+        this.passedCount = passedCount;
+    }
+
+    /** Applications rejected at screening. */
+    public int getRejectedCount() {
+        return rejectedCount;
+    }
+
+    public void setRejectedCount(int rejectedCount) {
+        this.rejectedCount = rejectedCount;
     }
 
     public int getApplyCount() {

@@ -31,7 +31,7 @@
                                 <span class="iv-badge iv-badge-teal">${iv.status}</span>
                             </div>
                             <span class="iv-small iv-muted">
-                                <fmt:formatDate value="${iv.interviewDate}" pattern="dd/MM/yyyy"/> ·
+                                <fmt:formatDate value="${iv.interviewDate}" pattern="d/MM/yyyy"/> ·
                                 <fmt:formatDate value="${iv.startTime}" pattern="HH:mm"/> · ${iv.interviewType}
                             </span>
 
@@ -80,7 +80,7 @@
             <p><b>Trạng thái hiện tại:</b> <span class="iv-badge iv-badge-blue">${apply.status}</span></p>
             <c:if test="${not empty apply.finalResult}">
                 <p><b>Kết luận trước:</b> ${apply.finalResult} bởi ${apply.conclusionByName}
-                    (<fmt:formatDate value="${apply.conclusionDate}" pattern="dd/MM/yyyy HH:mm"/>)</p>
+                    (<fmt:formatDate value="${apply.conclusionDate}" pattern="d/MM/yyyy HH:mm"/>)</p>
             </c:if>
         </div>
 

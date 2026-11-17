@@ -66,15 +66,13 @@
         </div>
     </div>
 
-    <!-- 4 TASKBARS ĐIỀU HƯỚNG: BỔ SUNG "KHO LƯU TRỮ" CHO TRƯỞNG PHÒNG VÀ ADMIN -->
-    <c:if test="${canEdit}">
-        <div class="room-tabs">
-            <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${leaderDept.departmentId}" class="room-tab-item">Quản lý nhân viên</a>
-            <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${leaderDept.departmentId}" class="room-tab-item">Chủ đề + Phân công</a>
-            <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${leaderDept.departmentId}" class="room-tab-item active">Tổng kết tiến độ</a>
-            <a href="${pageContext.request.contextPath}/leader-room?tab=archive&deptId=${leaderDept.departmentId}" class="room-tab-item">Kho lưu trữ</a>
-        </div>
-    </c:if>
+    <!-- 4 TASKBARS ĐIỀU HƯỚNG (Hiển thị đầy đủ để Employee bấm vào sẽ hiện thông báo không có thẩm quyền) -->
+    <div class="room-tabs">
+        <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${leaderDept.departmentId}" class="room-tab-item">Quản lý nhân viên</a>
+        <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${leaderDept.departmentId}" class="room-tab-item">Chủ đề + Phân công</a>
+        <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${leaderDept.departmentId}" class="room-tab-item active">Tổng kết tiến độ</a>
+        <a href="${pageContext.request.contextPath}/leader-room?tab=archive&deptId=${leaderDept.departmentId}" class="room-tab-item">Kho lưu trữ</a>
+    </div>
 
     <!-- 4 HỘP THỐNG KÊ TIẾN ĐỘ TỔNG HỢP -->
     <div class="stats-grid">
@@ -127,7 +125,12 @@
                                 <td><c:out value="${t.taskContent}"/></td>
                                 <td>
                                     <span style="color: #dc2626; font-weight: 600;">
-                                        ${not empty t.deadline ? t.deadline : '—'}
+                                        <c:choose>
+                                            <c:when test="${not empty t.deadline}">
+                                                <fmt:formatDate value="${t.deadline}" pattern="dd/MM/yyyy HH:mm"/>
+                                            </c:when>
+                                            <c:otherwise>—</c:otherwise>
+                                        </c:choose>
                                     </span>
                                 </td>
                                 <td>
@@ -158,7 +161,7 @@
             </tbody>
         </table>
 
-        <!-- PHẦN CUỐI GIAO DIỆN: ICON VÀ NÚT LƯU CHỦ ĐỀ VÀO KHO LƯU TRỮ -->
+        <!-- PHẦN CUỐI GIAO DIỆN: ICON VÀ NÚT LƯU CHỦ ĐỀ VÀO KHO LƯU TRỮ (Chỉ Trưởng phòng & Manager mới thấy) -->
         <c:if test="${canEdit && not empty allTasks}">
             <div style="margin-top: 24px; padding-top: 18px; border-top: 1.5px dashed #cbd5e1; display: flex; justify-content: flex-end; align-items: center;">
                 <form method="post" action="${pageContext.request.contextPath}/leader-room" style="display: inline-flex; align-items: center; gap: 10px; margin: 0;">

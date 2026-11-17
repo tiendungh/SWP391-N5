@@ -13,7 +13,13 @@
     <div class="iv-whoami">Xin chào, <b>${sessionScope.staffName}</b></div>
 </div>
 
-<c:if test="${not empty error}"><div class="iv-alert iv-alert-error">${error}</div></c:if>
+<c:if test="${not empty errors}">
+    <div class="iv-alert iv-alert-error">
+        <ul style="margin:0;padding-left:18px;">
+            <c:forEach var="e" items="${errors}"><li><c:out value="${e}"/></li></c:forEach>
+        </ul>
+    </div>
+</c:if>
 <c:if test="${param.created == '1'}"><div class="iv-alert iv-alert-success">Đã tạo barem mới thành công.</div></c:if>
 
 <c:choose>
@@ -48,7 +54,7 @@
     <%-- ================= Job post chosen: list + create form ================= --%>
     <c:otherwise>
         <div class="iv-card">
-            <h2>${selectedJobPost.title}</h2>
+            <h2><c:out value="${selectedJobPost.title}"/></h2>
             <p class="iv-muted iv-small">${selectedJobPost.category} · ${selectedJobPost.location}</p>
             <a href="${pageContext.request.contextPath}/barem" class="iv-btn iv-btn-sm iv-btn-ghost">Đổi vị trí khác</a>
         </div>
@@ -65,7 +71,7 @@
                         <tbody>
                             <c:forEach var="b" items="${existingBarems}">
                                 <tr>
-                                    <td><b>${b.baremName}</b><br><span class="iv-small iv-muted">${b.description}</span></td>
+                                    <td><b><c:out value="${b.baremName}"/></b><br><span class="iv-small iv-muted"><c:out value="${b.description}"/></span></td>
                                     <td>${b.totalScore}</td>
                                     <td><fmt:formatDate value="${b.createdAt}" pattern="dd/MM/yyyy HH:mm"/></td>
                                 </tr>
@@ -78,19 +84,19 @@
 
         <div class="iv-card">
             <h2>Tạo barem mới nhanh</h2>
-            <form method="post" action="${pageContext.request.contextPath}/barem" id="baremForm">
+            <form method="post" action="${pageContext.request.contextPath}/barem" id="baremForm" novalidate>
                 <input type="hidden" name="jobPostId" value="${jobPostId}"/>
-                <c:if test="${not empty returnApplyId}"><input type="hidden" name="returnApplyId" value="${returnApplyId}"/></c:if>
+                <c:if test="${not empty returnApplyId}"><input type="hidden" name="returnApplyId" value="<c:out value='${returnApplyId}'/>"/></c:if>
 
                 <div class="iv-form-row">
                     <div class="iv-field">
                         <label>Tên barem *</label>
-                        <input type="text" name="baremName" placeholder="Vd: Barem vòng chuyên môn" required/>
+                        <input type="text" name="baremName" maxlength="150" value="<c:out value='${formBaremName}'/>" placeholder="Vd: Barem vòng chuyên môn" required/>
                     </div>
                 </div>
                 <div class="iv-field" style="margin-bottom:14px;">
                     <label>Mô tả</label>
-                    <textarea name="description" placeholder="Mô tả ngắn về barem này..."></textarea>
+                    <textarea name="description" maxlength="500" placeholder="Mô tả ngắn về barem này..."><c:out value="${formDescription}"/></textarea>
                 </div>
 
                 <h3>Tiêu chí chấm điểm</h3>
@@ -99,13 +105,28 @@
                         <tr><th style="width:32%">Tên tiêu chí</th><th style="width:32%">Mô tả</th><th style="width:14%">Điểm tối đa</th><th style="width:14%">Trọng số (%)</th><th></th></tr>
                     </thead>
                     <tbody id="critBody">
-                        <tr>
-                            <td><input type="text" name="criteriaName" placeholder="Kiến thức chuyên môn" required/></td>
-                            <td><input type="text" name="criteriaDescription" placeholder="Mô tả tiêu chí"/></td>
-                            <td><input type="number" name="maxScore" min="1" step="1" value="20" required/></td>
-                            <td><input type="number" name="weight" min="0" max="100" step="1" value="20" required/></td>
-                            <td><button type="button" class="iv-crit-remove" onclick="removeCritRow(this)">×</button></td>
-                        </tr>
+                        <c:choose>
+                            <c:when test="${not empty formRows}">
+                                <c:forEach var="r" items="${formRows}">
+                                    <tr>
+                                        <td><input type="text" name="criteriaName" maxlength="150" value="<c:out value='${r[0]}'/>" placeholder="Kiến thức chuyên môn" required/></td>
+                                        <td><input type="text" name="criteriaDescription" maxlength="500" value="<c:out value='${r[1]}'/>" placeholder="Mô tả tiêu chí"/></td>
+                                        <td><input type="number" name="maxScore" min="1" max="9999" step="1" value="<c:out value='${r[2]}'/>" required/></td>
+                                        <td><input type="number" name="weight" min="0" max="100" step="1" value="<c:out value='${r[3]}'/>" required/></td>
+                                        <td><button type="button" class="iv-crit-remove" onclick="removeCritRow(this)">×</button></td>
+                                    </tr>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <tr>
+                                    <td><input type="text" name="criteriaName" maxlength="150" placeholder="Kiến thức chuyên môn" required/></td>
+                                    <td><input type="text" name="criteriaDescription" maxlength="500" placeholder="Mô tả tiêu chí"/></td>
+                                    <td><input type="number" name="maxScore" min="1" max="9999" step="1" value="20" required/></td>
+                                    <td><input type="number" name="weight" min="0" max="100" step="1" value="100" required/></td>
+                                    <td><button type="button" class="iv-crit-remove" onclick="removeCritRow(this)">×</button></td>
+                                </tr>
+                            </c:otherwise>
+                        </c:choose>
                     </tbody>
                 </table>
                 <button type="button" class="iv-btn iv-btn-sm iv-btn-ghost" style="margin-top:10px;" onclick="addCritRow()">+ Thêm tiêu chí</button>
@@ -155,7 +176,7 @@
         var sum = 0;
         weights.forEach(function (w) { sum += parseFloat(w.value) || 0; });
         var box = document.getElementById('weightSumBox');
-        box.textContent = 'Tổng trọng số: ' + sum + '% (nên bằng 100%)';
+        box.textContent = 'Tổng trọng số: ' + sum + '% (phải bằng 100%)';
         box.className = (sum === 100) ? 'ok' : 'warn';
     }
 
@@ -163,6 +184,36 @@
         if (e.target.name === 'weight') updateWeightSum();
     });
     updateWeightSum();
+
+    // Client-side checks (the server re-validates everything).
+    document.getElementById('baremForm').addEventListener('submit', function (e) {
+        var errs = [];
+        var name = this.elements['baremName'].value.trim();
+        if (!name) errs.push('Vui lòng nhập tên barem.');
+        else if (name.length > 150) errs.push('Tên barem không được dài quá 150 ký tự.');
+        if (this.elements['description'].value.length > 500) errs.push('Mô tả barem không được dài quá 500 ký tự.');
+
+        var seen = {};
+        var sum = 0;
+        var rows = document.getElementById('critBody').rows;
+        for (var i = 0; i < rows.length; i++) {
+            var cn = rows[i].querySelector('[name=criteriaName]').value.trim();
+            var cd = rows[i].querySelector('[name=criteriaDescription]').value;
+            var mx = parseFloat(rows[i].querySelector('[name=maxScore]').value);
+            var w = parseFloat(rows[i].querySelector('[name=weight]').value);
+            if (!cn) { errs.push('Tiêu chí #' + (i + 1) + ': vui lòng nhập tên.'); }
+            else if (seen[cn.toLowerCase()]) { errs.push('Tiêu chí #' + (i + 1) + ': tên bị trùng trong barem.'); }
+            seen[cn.toLowerCase()] = true;
+            if (cn.length > 150) errs.push('Tiêu chí #' + (i + 1) + ': tên không được dài quá 150 ký tự.');
+            if (cd.length > 500) errs.push('Tiêu chí #' + (i + 1) + ': mô tả không được dài quá 500 ký tự.');
+            if (!(mx > 0)) errs.push('Tiêu chí #' + (i + 1) + ': điểm tối đa phải lớn hơn 0.');
+            if (isNaN(w) || w < 0 || w > 100) errs.push('Tiêu chí #' + (i + 1) + ': trọng số phải từ 0 đến 100.');
+            else sum += w;
+        }
+        if (Math.abs(sum - 100) > 1e-9) errs.push('Tổng trọng số phải bằng 100% (hiện là ' + sum + '%).');
+
+        if (errs.length) { e.preventDefault(); alert(errs.join('\n')); }
+    });
 </script>
 
 <jsp:include page="staff_footer.jsp"/>

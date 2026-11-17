@@ -19,6 +19,7 @@ public class EmployeeCareerModel {
     private PositionModel currentPosition;
     private Date positionStartDate;
     private int monthsInPosition;
+    private int monthsAtCompany;
     private List<CareerPathModel> nextPaths = new ArrayList<>();
     private List<EmployeePositionHistoryModel> positionHistory = new ArrayList<>();
 
@@ -116,6 +117,14 @@ public class EmployeeCareerModel {
 
     public void setMonthsInPosition(int monthsInPosition) {
         this.monthsInPosition = monthsInPosition;
+    }
+
+    public int getMonthsAtCompany() {
+        return monthsAtCompany;
+    }
+
+    public void setMonthsAtCompany(int monthsAtCompany) {
+        this.monthsAtCompany = monthsAtCompany;
     }
 
     public List<CareerPathModel> getNextPaths() {

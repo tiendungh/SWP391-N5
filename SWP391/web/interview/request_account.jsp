@@ -101,7 +101,7 @@
                                     <c:otherwise><span class="iv-badge iv-badge-red">Đã từ chối</span></c:otherwise>
                                 </c:choose>
                             </td>
-                            <td><fmt:formatDate value="${req.createdAt}" pattern="dd/MM/yyyy HH:mm"/></td>
+                            <td><fmt:formatDate value="${req.createdAt}" pattern="d/MM/yyyy HH:mm"/></td>
                             <td class="iv-small"><c:out value="${req.rejectionNote}"/></td>
                         </tr>
                     </c:forEach>

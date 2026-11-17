@@ -1,4 +1,5 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <c:set var="pageTitle" value="Phân công nhiệm vụ chi tiết" scope="request"/>
 <jsp:include page="/interview/staff_header.jsp"/>
@@ -6,7 +7,7 @@
 <style>
     .task-shell { max-width: 1100px; margin: 0 auto; padding: 20px; }
     .card-assign { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06); }
-    .grid-task-form { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1.5fr auto; gap: 10px; align-items: flex-end; }
+    .grid-task-form { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1.3fr auto; gap: 10px; align-items: flex-end; }
 </style>
 
 <div class="task-shell">
@@ -60,7 +61,7 @@
                     </div>
                     <div>
                         <label style="font-size: 0.8rem; font-weight: bold;">Thời hạn (Deadline) *</label>
-                        <input type="date" name="deadline" required style="width: 100%; padding: 7px; border: 1.5px solid #cbd5e1; border-radius: 6px;"/>
+                        <input type="datetime-local" name="deadline" required style="width: 100%; padding: 7px; border: 1.5px solid #cbd5e1; border-radius: 6px;"/>
                     </div>
                     <div>
                         <label style="font-size: 0.8rem; font-weight: bold;">Ghi chú trưởng phòng</label>
@@ -108,7 +109,16 @@
 
                             <tr>
                                 <td><b>${t.taskContent}</b></td>
-                                <td><span style="color: #dc2626; font-weight: 600;">${t.deadline}</span></td>
+                                <td>
+                                    <span style="color: #dc2626; font-weight: 600;">
+                                        <c:choose>
+                                            <c:when test="${not empty t.deadline}">
+                                                <fmt:formatDate value="${t.deadline}" pattern="dd/MM/yyyy HH:mm"/>
+                                            </c:when>
+                                            <c:otherwise>—</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${canEdit}">

@@ -245,12 +245,6 @@ public class PromotionRequestDAO extends DBContext {
                 return CREATE_PATH_INVALID;
             }
 
-            int monthsInPosition = calculateCompleteMonths(employee.positionStartDate);
-            if (monthsInPosition < path.minMonthsInPosition) {
-                rollbackQuietly();
-                return CREATE_TENURE_NOT_MET;
-            }
-
             int requestId = insertRequest(employeeId, employee.currentPositionId,
                     proposedPositionId, employee.currentSalary, proposedSalary,
                     path.proposedDepartment, effectiveDate, cleanedReason, proposedBy);
@@ -761,6 +755,7 @@ public class PromotionRequestDAO extends DBContext {
         Date positionStartDate = rs.getDate("PositionStartDate");
         employee.setPositionStartDate(positionStartDate);
         employee.setMonthsInPosition(calculateCompleteMonths(positionStartDate));
+        employee.setMonthsAtCompany(calculateCompleteMonths(employee.getHireDate()));
         return employee;
     }
 

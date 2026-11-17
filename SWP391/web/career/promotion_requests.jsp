@@ -65,9 +65,15 @@
                 Cấp <c:out value="${selectedCareer.currentPosition.jobLevel.levelName}"/>
             </p>
         </div>
-        <div class="iv-profile-score">
-            <strong>${selectedCareer.monthsInPosition} tháng</strong>
-            <span>Thời gian ở vị trí hiện tại</span>
+        <div class="iv-profile-score" style="display:flex; gap:28px; text-align:right;">
+            <div>
+                <strong>${selectedCareer.monthsAtCompany} tháng</strong>
+                <span>Tổng thời gian tại công ty</span>
+            </div>
+            <div>
+                <strong>${selectedCareer.monthsInPosition} tháng</strong>
+                <span>Thời gian ở vị trí hiện tại</span>
+            </div>
         </div>
     </div>
 
@@ -81,7 +87,7 @@
                 <div class="iv-empty">Chưa thiết lập bước thăng tiến tiếp theo cho vị trí hiện tại.</div>
             </c:when>
             <c:when test="${!canCreatePromotion}">
-                <div class="iv-empty">Nhân viên chưa đủ thời gian hoặc chưa có vị trí mục tiêu cấp cao hơn.</div>
+                <div class="iv-empty">Chưa có vị trí mục tiêu cấp cao hơn cho vị trí hiện tại.</div>
             </c:when>
             <c:otherwise>
                 <form method="post" action="${pageContext.request.contextPath}/promotion-requests">
@@ -94,10 +100,9 @@
                                 <c:forEach var="path" items="${selectedCareer.nextPaths}">
                                     <c:set var="higherLevel" value="${path.toPosition.jobLevel.rankOrder > selectedCareer.currentPosition.jobLevel.rankOrder}"/>
                                     <option value="${path.toPosition.positionId}"
-                                            <c:if test="${!path.eligibleByTenure || !higherLevel}">disabled</c:if>>
+                                            <c:if test="${!higherLevel}">disabled</c:if>>
                                         <c:out value="${path.toPosition.positionName}"/> -
                                         Cấp <c:out value="${path.toPosition.jobLevel.levelName}"/>
-                                        <c:if test="${!path.eligibleByTenure}">(còn ${path.remainingMonths} tháng)</c:if>
                                     </option>
                                 </c:forEach>
                             </select>
@@ -105,7 +110,7 @@
                         <div class="iv-field">
                             <label>Lương đề xuất</label>
                             <input type="number" name="proposedSalary" min="0" max="9999999999999999.99"
-                                   step="0.01" placeholder="Hiện tại: ${selectedCareer.salary}"/>
+                                   step="0.01" placeholder="Hiện tại: <fmt:formatNumber value='${selectedCareer.salary}' type='number' maxFractionDigits='0'/>"/>
                         </div>
                         <div class="iv-field">
                             <label>Ngày hiệu lực *</label>
@@ -165,13 +170,13 @@
                                 </td>
                                 <td>
                                     <c:out value="${promotion.proposedByName}"/><br>
-                                    <span class="iv-small iv-muted"><fmt:formatDate value="${promotion.proposedAt}" pattern="dd/MM/yyyy HH:mm"/></span>
+                                    <span class="iv-small iv-muted"><fmt:formatDate value="${promotion.proposedAt}" pattern="d/MM/yyyy HH:mm"/></span>
                                 </td>
-                                <td><fmt:formatDate value="${promotion.effectiveDate}" pattern="dd/MM/yyyy"/></td>
+                                <td><fmt:formatDate value="${promotion.effectiveDate}" pattern="d/MM/yyyy"/></td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${not empty promotion.proposedSalary}">
-                                            <fmt:formatNumber value="${promotion.proposedSalary}" pattern="#0.00"/>
+                                            <fmt:formatNumber value="${promotion.proposedSalary}" type="number" maxFractionDigits="0"/>
                                         </c:when>
                                         <c:otherwise>Giữ nguyên</c:otherwise>
                                     </c:choose>

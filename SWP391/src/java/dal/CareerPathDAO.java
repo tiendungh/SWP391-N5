@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -223,6 +224,7 @@ public class CareerPathDAO extends DBContext {
         Date startDate = rs.getDate("PositionStartDate");
         career.setPositionStartDate(startDate);
         career.setMonthsInPosition(calculateCompleteMonths(startDate));
+        career.setMonthsAtCompany(calculateCompleteMonths(career.getHireDate()));
         return career;
     }
 
@@ -264,6 +266,83 @@ public class CareerPathDAO extends DBContext {
         history.setPromotionRequestId(rs.wasNull() ? null : requestId);
         history.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return history;
+    }
+
+    /** Standard ladder every department gets, in ascending rank order. */
+    private static final String[] STANDARD_LEVELS = {"Junior", "Middle", "Senior", "Lead", "Manager"};
+
+    /**
+     * Guarantees that {@code department} has a Junior..Manager career ladder
+     * in [Position]/CareerPath, built on the shared JobLevel rows (the same
+     * ones IT/HR already use - this does not invent per-department levels).
+     * Safe to call every time an employee is created: no-op once the
+     * department already has at least one Position row. Mirrors the
+     * department-seeding block in SWP391-2.sql for DBs created before this
+     * employee existed.
+     */
+    public void ensureDepartmentHasCareerPath(String department) {
+        if (c == null || department == null || department.trim().isEmpty()) return;
+        String dept = department.trim();
+
+        try {
+            try (PreparedStatement check = c.prepareStatement(
+                    "SELECT 1 FROM [Position] WHERE Department = ?")) {
+                check.setString(1, dept);
+                try (ResultSet rs = check.executeQuery()) {
+                    if (rs.next()) return; // already has a ladder
+                }
+            }
+
+            int creatorEmployeeId = -1;
+            try (PreparedStatement ps = c.prepareStatement("SELECT TOP (1) EmployeeID FROM Employee ORDER BY EmployeeID");
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) creatorEmployeeId = rs.getInt(1);
+            }
+            if (creatorEmployeeId < 0) return; // no employee yet to own the CareerPath rows
+
+            int[] jobLevelIds = new int[STANDARD_LEVELS.length];
+            for (int i = 0; i < STANDARD_LEVELS.length; i++) {
+                try (PreparedStatement ps = c.prepareStatement(
+                        "SELECT JobLevelID FROM JobLevel WHERE LevelName = ?")) {
+                    ps.setString(1, STANDARD_LEVELS[i]);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) return; // shared JobLevel catalog missing, nothing to attach to
+                        jobLevelIds[i] = rs.getInt(1);
+                    }
+                }
+            }
+
+            int[] positionIds = new int[STANDARD_LEVELS.length];
+            for (int i = 0; i < STANDARD_LEVELS.length; i++) {
+                try (PreparedStatement ps = c.prepareStatement(
+                        "INSERT INTO [Position] (PositionName, Department, JobLevelID, Description, IsActive) "
+                        + "VALUES (?, ?, ?, N'Vị trí chuẩn được tạo tự động cho phòng ban', 1)",
+                        Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, dept + " - " + STANDARD_LEVELS[i]);
+                    ps.setString(2, dept);
+                    ps.setInt(3, jobLevelIds[i]);
+                    ps.executeUpdate();
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        keys.next();
+                        positionIds[i] = keys.getInt(1);
+                    }
+                }
+            }
+
+            for (int i = 0; i < positionIds.length - 1; i++) {
+                try (PreparedStatement ps = c.prepareStatement(
+                        "INSERT INTO CareerPath (FromPositionID, ToPositionID, MinMonthsInPosition, "
+                        + "RequirementNote, IsActive, CreatedBy) "
+                        + "VALUES (?, ?, 0, N'Lộ trình chuẩn được tạo tự động cho phòng ban', 1, ?)")) {
+                    ps.setInt(1, positionIds[i]);
+                    ps.setInt(2, positionIds[i + 1]);
+                    ps.setInt(3, creatorEmployeeId);
+                    ps.executeUpdate();
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("CareerPathDAO.ensureDepartmentHasCareerPath error: " + e.getMessage());
+        }
     }
 
     private int calculateCompleteMonths(Date startDate) {

@@ -9,6 +9,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import model.JobPostModel;
 import tool.SessionUtil;
 
@@ -20,6 +23,7 @@ import tool.SessionUtil;
 public class JobPostServlet extends HttpServlet {
 
     private static final String VIEW = "/interview/jobpost_manage.jsp";
+    private static final List<String> JOB_TYPES = List.of("Full-time", "Part-time", "Internship", "Remote");
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -71,7 +75,7 @@ public class JobPostServlet extends HttpServlet {
 
             // ---- read the form ----
             JobPostModel j = new JobPostModel();
-            j.setTitle(trim(request.getParameter("title")));
+            j.setTitle(trim(request.getParameter("title")).replaceAll("\\s+", " "));
             j.setDescription(trim(request.getParameter("description")));
             j.setCategory(trim(request.getParameter("category")));
             j.setPosition(trim(request.getParameter("position")));
@@ -79,35 +83,52 @@ public class JobPostServlet extends HttpServlet {
             j.setTypeJob(trim(request.getParameter("typeJob")));
             j.setVisible("on".equals(request.getParameter("visible")));
 
+            String offerMinStr = trim(request.getParameter("offerMin"));
+            String offerMaxStr = trim(request.getParameter("offerMax"));
+            String numberExpStr = trim(request.getParameter("numberExp"));
+            String deadlineStr = trim(request.getParameter("deadline"));
+
+            // ---- 1. every field is required ----
             String error = null;
-            try {
-                String offerMinStr = trim(request.getParameter("offerMin"));
-                String offerMaxStr = trim(request.getParameter("offerMax"));
-                String numberExpStr = trim(request.getParameter("numberExp"));
-                String deadlineStr = trim(request.getParameter("deadline"));
-                j.setOfferMin(offerMinStr.isEmpty() ? null : new BigDecimal(offerMinStr));
-                j.setOfferMax(offerMaxStr.isEmpty() ? null : new BigDecimal(offerMaxStr));
-                j.setNumberExp(numberExpStr.isEmpty() ? null : Integer.parseInt(numberExpStr));
-                j.setDeadline(deadlineStr.isEmpty() ? null : Date.valueOf(deadlineStr));
-            } catch (IllegalArgumentException e) {   // NumberFormatException is a subclass
-                error = "Lương, kinh nghiệm hoặc hạn nộp không hợp lệ.";
+            List<String> missing = missingFields(j, offerMinStr, offerMaxStr, numberExpStr, deadlineStr);
+            if (!missing.isEmpty()) {
+                error = "Vui lòng điền đầy đủ các mục bắt buộc: " + String.join(", ", missing) + ".";
             }
 
-            if (isUpdate) {
+            // ---- 2. parse numbers and date ----
+            if (error == null) {
                 try {
-                    j.setJobPostId(Integer.parseInt(request.getParameter("jobPostId")));
-                } catch (NumberFormatException e) {
-                    error = "Không xác định được JD cần sửa.";
+                    j.setOfferMin(new BigDecimal(offerMinStr));
+                    j.setOfferMax(new BigDecimal(offerMaxStr));
+                    j.setNumberExp(Integer.parseInt(numberExpStr));
+                    j.setDeadline(Date.valueOf(deadlineStr));
+                } catch (IllegalArgumentException e) {   // NumberFormatException is a subclass
+                    error = "Lương, kinh nghiệm hoặc hạn nộp không hợp lệ.";
                 }
             }
 
-            // ---- validate ----
-            if (error == null && (j.getTitle().isEmpty() || j.getDescription().isEmpty() || j.getLocation().isEmpty())) {
-                error = "Vui lòng nhập đầy đủ Tiêu đề, Mô tả và Địa điểm.";
+            // ---- 3. which JD is being edited ----
+            JobPostModel existing = null;
+            if (isUpdate) {
+                try {
+                    j.setJobPostId(Integer.parseInt(request.getParameter("jobPostId")));
+                    existing = jobPostDAO.getJobPostById(j.getJobPostId());
+                } catch (NumberFormatException e) {
+                    // handled below
+                }
+                if (existing == null && error == null) {
+                    error = "Không tìm thấy JD cần sửa.";
+                }
             }
-            if (error == null && j.getOfferMin() != null && j.getOfferMax() != null
-                    && j.getOfferMin().compareTo(j.getOfferMax()) > 0) {
-                error = "Lương tối thiểu không được lớn hơn lương tối đa.";
+
+            // ---- 4. business rules (salary range, deadline, job type) ----
+            if (error == null) {
+                error = ruleError(j, LocalDate.now(), existing == null ? null : existing.getDeadline());
+            }
+
+            // ---- 5. the title must be unique among all JDs ----
+            if (error == null && jobPostDAO.titleExists(j.getTitle(), isUpdate ? j.getJobPostId() : -1)) {
+                error = "Tiêu đề \"" + j.getTitle() + "\" đã tồn tại. Vui lòng chọn tiêu đề khác.";
             }
 
             if (error == null) {
@@ -137,8 +158,50 @@ public class JobPostServlet extends HttpServlet {
         }
     }
 
+    /** Names of the required fields that were left empty (every field of the form is required). */
+    static List<String> missingFields(JobPostModel j, String offerMin, String offerMax, String numberExp, String deadline) {
+        List<String> missing = new ArrayList<>();
+        if (j.getTitle().isEmpty()) missing.add("Tiêu đề");
+        if (j.getDescription().isEmpty()) missing.add("Mô tả công việc");
+        if (j.getCategory().isEmpty()) missing.add("Phòng ban / Category");
+        if (j.getPosition().isEmpty()) missing.add("Vị trí");
+        if (j.getLocation().isEmpty()) missing.add("Địa điểm");
+        if (j.getTypeJob().isEmpty()) missing.add("Loại hình");
+        if (offerMin.isEmpty()) missing.add("Lương tối thiểu");
+        if (offerMax.isEmpty()) missing.add("Lương tối đa");
+        if (numberExp.isEmpty()) missing.add("Kinh nghiệm tối thiểu");
+        if (deadline.isEmpty()) missing.add("Hạn nộp hồ sơ");
+        return missing;
+    }
+
+    /**
+     * Business rules on a fully parsed JD. Returns an error message, or null when valid.
+     * @param existingDeadline stored deadline when editing (an unchanged past deadline is tolerated), null when creating.
+     */
+    static String ruleError(JobPostModel j, LocalDate today, Date existingDeadline) {
+        if (!JOB_TYPES.contains(j.getTypeJob())) {
+            return "Loại hình không hợp lệ.";
+        }
+        if (j.getNumberExp() < 0) {
+            return "Kinh nghiệm tối thiểu phải là số không âm.";
+        }
+        if (j.getOfferMin().signum() < 0 || j.getOfferMax().signum() < 0) {
+            return "Mức lương không được âm.";
+        }
+        if (j.getOfferMin().compareTo(j.getOfferMax()) >= 0) {
+            return "Lương tối thiểu phải nhỏ hơn lương tối đa.";
+        }
+        LocalDate deadline = j.getDeadline().toLocalDate();
+        boolean unchanged = existingDeadline != null && existingDeadline.toLocalDate().equals(deadline);
+        if (deadline.isBefore(today) && !unchanged) {
+            return "Hạn nộp hồ sơ không được nằm trong quá khứ.";
+        }
+        return null;
+    }
+
     private void render(HttpServletRequest request, HttpServletResponse response, JobPostDAO jobPostDAO)
             throws ServletException, IOException {
+        request.setAttribute("today", LocalDate.now().toString());
         request.setAttribute("jobPosts", jobPostDAO.getAllJobPosts());
         request.getRequestDispatcher(VIEW).forward(request, response);
     }

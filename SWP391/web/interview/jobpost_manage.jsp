@@ -71,6 +71,7 @@
 
     <div class="iv-card" id="jd-form" style="order:${editMode ? 0 : 2};">
         <h2>${editMode ? 'Sửa JD' : 'Tạo JD mới'}</h2>
+        <p style="margin:0 0 14px; color:#64748b; font-size:0.9rem;">Tất cả các mục đánh dấu <b style="color:#dc2626;">*</b> đều bắt buộc phải điền.</p>
         <form method="post" action="${pageContext.request.contextPath}/job-post">
             <input type="hidden" name="action" value="${editMode ? 'update' : 'create'}"/>
             <c:if test="${editMode}"><input type="hidden" name="jobPostId" value="${formJob.jobPostId}"/></c:if>
@@ -87,16 +88,16 @@
             </div>
             <div class="iv-form-row">
                 <div class="iv-field">
-                    <label>Phòng ban / Category</label>
-                    <input type="text" name="category" placeholder="IT, Human Resources, Finance..." value="<c:out value='${formJob.category}'/>"/>
+                    <label>Phòng ban / Category *</label>
+                    <input type="text" name="category" placeholder="IT, Human Resources, Finance..." value="<c:out value='${formJob.category}'/>" required/>
                 </div>
                 <div class="iv-field">
-                    <label>Vị trí (Position)</label>
-                    <input type="text" name="position" placeholder="Java Developer" value="<c:out value='${formJob.position}'/>"/>
+                    <label>Vị trí (Position) *</label>
+                    <input type="text" name="position" placeholder="Java Developer" value="<c:out value='${formJob.position}'/>" required/>
                 </div>
                 <div class="iv-field">
-                    <label>Loại hình</label>
-                    <select name="typeJob">
+                    <label>Loại hình *</label>
+                    <select name="typeJob" required>
                         <option value="Full-time" ${formJob.typeJob == 'Full-time' ? 'selected' : ''}>Full-time</option>
                         <option value="Part-time" ${formJob.typeJob == 'Part-time' ? 'selected' : ''}>Part-time</option>
                         <option value="Internship" ${formJob.typeJob == 'Internship' ? 'selected' : ''}>Thực tập</option>
@@ -106,20 +107,20 @@
             </div>
             <div class="iv-form-row">
                 <div class="iv-field">
-                    <label>Lương tối thiểu</label>
-                    <input type="number" name="offerMin" min="0" step="0.01" placeholder="1000" value="${formJob.offerMin}"/>
+                    <label>Lương tối thiểu *</label>
+                    <input type="number" name="offerMin" min="0" step="0.01" placeholder="1000" value="${formJob.offerMin}" required/>
                 </div>
                 <div class="iv-field">
-                    <label>Lương tối đa</label>
-                    <input type="number" name="offerMax" min="0" step="0.01" placeholder="2000" value="${formJob.offerMax}"/>
+                    <label>Lương tối đa *</label>
+                    <input type="number" name="offerMax" min="0" step="0.01" placeholder="2000" value="${formJob.offerMax}" required/>
                 </div>
                 <div class="iv-field">
-                    <label>Kinh nghiệm tối thiểu (năm)</label>
-                    <input type="number" name="numberExp" min="0" step="1" placeholder="1" value="${formJob.numberExp}"/>
+                    <label>Kinh nghiệm tối thiểu (năm) *</label>
+                    <input type="number" name="numberExp" min="0" step="1" placeholder="1" value="${formJob.numberExp}" required/>
                 </div>
                 <div class="iv-field">
-                    <label>Hạn nộp hồ sơ</label>
-                    <input type="date" name="deadline" value="<fmt:formatDate value='${formJob.deadline}' pattern='yyyy-MM-dd'/>"/>
+                    <label>Hạn nộp hồ sơ *</label>
+                    <input type="date" name="deadline" ${editMode ? '' : 'min="'.concat(today).concat('"')} value="<fmt:formatDate value='${formJob.deadline}' pattern='yyyy-MM-dd'/>" required/>
                 </div>
             </div>
             <div class="iv-field" style="margin-bottom:14px;">
@@ -138,5 +139,20 @@
         </form>
     </div>
 </div>
+
+<script>
+    (function () {
+        var min = document.querySelector('[name=offerMin]');
+        var max = document.querySelector('[name=offerMax]');
+        if (!min || !max) return;
+        function check() {
+            var a = parseFloat(min.value), b = parseFloat(max.value);
+            max.setCustomValidity(!isNaN(a) && !isNaN(b) && a >= b ? 'Lương tối đa phải lớn hơn lương tối thiểu' : '');
+        }
+        min.addEventListener('input', check);
+        max.addEventListener('input', check);
+        check();
+    })();
+</script>
 
 <jsp:include page="staff_footer.jsp"/>

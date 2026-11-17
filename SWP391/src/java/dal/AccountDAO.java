@@ -124,6 +124,14 @@ public class AccountDAO extends DBContext {
             }
 
             c.commit();
+            if (employeeId > 0 && department != null && !department.trim().isEmpty()) {
+                CareerPathDAO careerPathDAO = new CareerPathDAO();
+                try {
+                    careerPathDAO.ensureDepartmentHasCareerPath(department);
+                } finally {
+                    careerPathDAO.closeConnection();
+                }
+            }
             return employeeId;
         } catch (Exception e) {
             System.err.println("AccountDAO.createEmployeeAccount error: " + e.getMessage());
@@ -232,6 +240,14 @@ public class AccountDAO extends DBContext {
             }
 
             c.commit();
+            if (department != null && !department.trim().isEmpty()) {
+                CareerPathDAO careerPathDAO = new CareerPathDAO();
+                try {
+                    careerPathDAO.ensureDepartmentHasCareerPath(department);
+                } finally {
+                    careerPathDAO.closeConnection();
+                }
+            }
             return true;
         } catch (Exception e) {
             System.err.println("AccountDAO.updateEmployeeAccount error: " + e.getMessage());

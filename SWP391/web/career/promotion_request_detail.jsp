@@ -47,7 +47,7 @@
         <p class="iv-muted"><c:out value="${promotion.employeeCode}"/></p>
     </div>
     <div class="iv-profile-score">
-        <strong><fmt:formatDate value="${promotion.effectiveDate}" pattern="dd/MM/yyyy"/></strong>
+        <strong><fmt:formatDate value="${promotion.effectiveDate}" pattern="d/MM/yyyy"/></strong>
         <span>Ngày hiệu lực dự kiến</span>
     </div>
 </div>
@@ -73,14 +73,14 @@
                 <span>
                     <b>Lương hiện tại:</b>
                     <c:choose>
-                        <c:when test="${not empty promotion.currentSalary}"><fmt:formatNumber value="${promotion.currentSalary}" pattern="#0.00"/></c:when>
+                        <c:when test="${not empty promotion.currentSalary}"><fmt:formatNumber value="${promotion.currentSalary}" type="number" maxFractionDigits="0"/></c:when>
                         <c:otherwise>Chưa thiết lập</c:otherwise>
                     </c:choose>
                 </span>
                 <span>
                     <b>Lương đề xuất:</b>
                     <c:choose>
-                        <c:when test="${not empty promotion.proposedSalary}"><fmt:formatNumber value="${promotion.proposedSalary}" pattern="#0.00"/></c:when>
+                        <c:when test="${not empty promotion.proposedSalary}"><fmt:formatNumber value="${promotion.proposedSalary}" type="number" maxFractionDigits="0"/></c:when>
                         <c:otherwise>Giữ nguyên</c:otherwise>
                     </c:choose>
                 </span>
@@ -88,12 +88,12 @@
             <p><b>Lý do:</b> <c:out value="${promotion.reason}"/></p>
             <p class="iv-small iv-muted">
                 Đề nghị bởi <b><c:out value="${promotion.proposedByName}"/></b>
-                lúc <fmt:formatDate value="${promotion.proposedAt}" pattern="dd/MM/yyyy HH:mm"/>.
+                lúc <fmt:formatDate value="${promotion.proposedAt}" pattern="d/MM/yyyy HH:mm"/>.
             </p>
             <c:if test="${not empty promotion.reviewedBy}">
                 <p class="iv-small">
                     <b>Người xử lý:</b> <c:out value="${promotion.reviewedByName}"/> ·
-                    <fmt:formatDate value="${promotion.reviewedAt}" pattern="dd/MM/yyyy HH:mm"/>
+                    <fmt:formatDate value="${promotion.reviewedAt}" pattern="d/MM/yyyy HH:mm"/>
                 </p>
             </c:if>
             <c:if test="${not empty promotion.reviewNote}">
@@ -177,7 +177,7 @@
                             · <c:out value="${history.actionByName}"/>
                         </div>
                         <div class="iv-small iv-muted">
-                            <fmt:formatDate value="${history.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
+                            <fmt:formatDate value="${history.createdAt}" pattern="d/MM/yyyy HH:mm"/>
                             · <c:out value="${history.fromStatus}"/> → <c:out value="${history.toStatus}"/>
                         </div>
                         <c:if test="${not empty history.comment}">

@@ -38,7 +38,7 @@
                             <td><c:out value="${req.roleName}"/></td>
                             <td><c:out value="${req.department}"/> / <c:out value="${req.position}"/></td>
                             <td><c:out value="${req.requestedByName}"/></td>
-                            <td><fmt:formatDate value="${req.createdAt}" pattern="dd/MM/yyyy HH:mm"/></td>
+                            <td><fmt:formatDate value="${req.createdAt}" pattern="d/MM/yyyy HH:mm"/></td>
                             <td class="iv-small"><c:out value="${req.note}"/></td>
                             <td>
                                 <div class="iv-action-row">
@@ -82,7 +82,7 @@
                                     <c:otherwise><span class="iv-badge iv-badge-red">Đã từ chối</span></c:otherwise>
                                 </c:choose>
                             </td>
-                            <td><fmt:formatDate value="${req.createdAt}" pattern="dd/MM/yyyy HH:mm"/></td>
+                            <td><fmt:formatDate value="${req.createdAt}" pattern="d/MM/yyyy HH:mm"/></td>
                             <td><c:out value="${req.reviewedByAdminName}"/></td>
                             <td class="iv-small">
                                 <c:if test="${req.status == 'Rejected'}"><c:out value="${req.rejectionNote}"/></c:if>

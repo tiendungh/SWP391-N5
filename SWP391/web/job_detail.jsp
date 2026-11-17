@@ -33,12 +33,15 @@
                 <div class="pb-meta">
                     <span class="pb-tag">${job.category}</span>
                     <c:if test="${not empty job.typeJob}"><span class="pb-tag teal">${job.typeJob}</span></c:if>
-                    &nbsp;&nbsp;Hạn nộp: <fmt:formatDate value="${job.deadline}" pattern="dd/MM/yyyy"/>
+                    &nbsp;&nbsp;Hạn nộp: <fmt:formatDate value="${job.deadline}" pattern="d/MM/yyyy"/>
                     <c:if test="${not empty job.numberExp}"> · Yêu cầu ≥ ${job.numberExp} năm kinh nghiệm</c:if>
                 </div>
 
                 <c:if test="${not empty job.offerMin}">
-                    <p class="pb-salary">${job.offerMin} - ${job.offerMax}</p>
+                    <p class="pb-salary">
+                        <fmt:formatNumber value="${job.offerMin}" type="number" maxFractionDigits="0"/> -
+                        <fmt:formatNumber value="${job.offerMax}" type="number" maxFractionDigits="0"/> $
+                    </p>
                 </c:if>
 
                 <div class="pb-section-title">Mô tả công việc</div>

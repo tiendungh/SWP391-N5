@@ -16,6 +16,7 @@
 <c:if test="${param.updated == '1'}"><div class="iv-alert iv-alert-success">Đã cập nhật trạng thái các hồ sơ đã chọn.</div></c:if>
 
 <c:choose>
+    <%-- ================= No JD chosen: pick one ================= --%>
     <c:when test="${empty jobPostId}">
         <div class="iv-card">
             <h2>Chọn JD cần sơ lọc</h2>
@@ -30,7 +31,14 @@
                             <c:forEach var="j" items="${jobPosts}">
                                 <tr>
                                     <td><b>${j.title}</b><br><span class="iv-small iv-muted">${j.category} · ${j.location}</span></td>
-                                    <td><span class="iv-badge iv-badge-blue">${j.applyCount}</span></td>
+                                    <td>
+                                        <span class="iv-badge iv-badge-blue">${j.pendingCount} chờ sơ lọc</span>
+                                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                                            <span class="iv-badge iv-badge-green">${j.passedCount} đã pass</span>
+                                            <span class="iv-badge iv-badge-red">${j.rejectedCount} đã loại</span>
+                                        </div>
+                                        <div class="iv-small iv-muted" style="margin-top:6px;">Tổng ${j.applyCount} hồ sơ</div>
+                                    </td>
                                     <td>
                                         <c:choose>
                                             <c:when test="${j.visible}"><span class="iv-badge iv-badge-green">Đang mở</span></c:when>
@@ -47,6 +55,7 @@
         </div>
     </c:when>
 
+    <%-- ================= JD chosen: filter + list ================= --%>
     <c:otherwise>
         <div class="iv-card">
             <a href="${pageContext.request.contextPath}/screening" class="iv-btn iv-btn-sm iv-btn-ghost">← Chọn JD khác</a>
@@ -168,6 +177,8 @@
     </c:otherwise>
 </c:choose>
 
+
+<%-- ================= Candidate detail modal ================= --%>
 <style>
     .cd-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
     .cd-overlay[hidden] { display: none; }
@@ -198,6 +209,7 @@
                 <div><dt>Quốc tịch</dt><dd data-f="nationality"></dd></div>
                 <div class="cd-wide"><dt>Địa chỉ</dt><dd data-f="address"></dd></div>
             </dl>
+
             <div class="cd-section">Thông tin ứng tuyển</div>
             <dl class="cd-grid">
                 <div><dt>Vị trí ứng tuyển</dt><dd data-f="position"></dd></div>
@@ -209,6 +221,7 @@
                 <div class="cd-wide"><dt>Chuyên ngành / Lĩnh vực</dt><dd data-f="field"></dd></div>
                 <div class="cd-wide"><dt>Lời nhắn / Cover note</dt><dd data-f="note"></dd></div>
             </dl>
+
             <div class="cd-section">Hồ sơ</div>
             <dl class="cd-grid">
                 <div><dt>File CV</dt><dd><a id="cdFile" href="#" target="_blank" rel="noopener">Xem file</a><span id="cdNoFile">Không có file</span></dd></div>

@@ -112,7 +112,10 @@ public class PromotionRequestServlet extends HttpServlet {
                 boolean hasPendingRequest = requestDao.hasPendingRequest(employeeId);
                 boolean canCreatePromotion = false;
                 for (CareerPathModel path : selectedCareer.getNextPaths()) {
-                    if (path.isEligibleByTenure()
+                    if (path.getToPosition() != null
+                            && path.getToPosition().getJobLevel() != null
+                            && selectedCareer.getCurrentPosition() != null
+                            && selectedCareer.getCurrentPosition().getJobLevel() != null
                             && path.getToPosition().getJobLevel().getRankOrder()
                             > selectedCareer.getCurrentPosition().getJobLevel().getRankOrder()) {
                         canCreatePromotion = true;

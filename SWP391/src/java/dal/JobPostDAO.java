@@ -38,7 +38,10 @@ public class JobPostDAO extends DBContext {
         String sql = "SELECT jp.JobPostID, jp.Title, jp.Description, jp.Category, jp.Position, jp.Location, "
                 + "jp.OfferMin, jp.OfferMax, jp.NumberExp, jp.Visible, jp.TypeJob, jp.Deadline, jp.DayCreate, "
                 + "jp.CreatedBy, c.CandidateName AS CreatedByName, "
-                + "(SELECT COUNT(*) FROM Apply a WHERE a.JobPostID = jp.JobPostID) AS ApplyCount "
+                + "(SELECT COUNT(*) FROM Apply a WHERE a.JobPostID = jp.JobPostID) AS ApplyCount, "
+                + "(SELECT COUNT(*) FROM Apply a WHERE a.JobPostID = jp.JobPostID AND ISNULL(a.Status, 'Pending') = 'Pending') AS PendingCount, "
+                + "(SELECT COUNT(*) FROM Apply a WHERE a.JobPostID = jp.JobPostID AND ISNULL(a.Status, 'Pending') = 'Rejected') AS RejectedCount, "
+                + "(SELECT COUNT(*) FROM Apply a WHERE a.JobPostID = jp.JobPostID AND ISNULL(a.Status, 'Pending') NOT IN ('Pending', 'Rejected')) AS PassedCount "
                 + "FROM JobPost jp "
                 + "LEFT JOIN Employee e ON jp.CreatedBy = e.EmployeeID "
                 + "LEFT JOIN Candidate c ON e.CandidateID = c.CandidateID "
@@ -50,6 +53,9 @@ public class JobPostDAO extends DBContext {
                 JobPostModel j = mapRow(rs);
                 j.setCreatedByName(rs.getString("CreatedByName"));
                 j.setApplyCount(rs.getInt("ApplyCount"));
+                j.setPendingCount(rs.getInt("PendingCount"));
+                j.setRejectedCount(rs.getInt("RejectedCount"));
+                j.setPassedCount(rs.getInt("PassedCount"));
                 list.add(j);
             }
         } catch (Exception e) {
@@ -128,6 +134,26 @@ public class JobPostDAO extends DBContext {
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             System.err.println("JobPostDAO.updateJobPost error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * True if another JD (open or closed) already uses this title, ignoring case and surrounding spaces.
+     * @param excludeId JD to ignore (the one being edited), or -1 when creating.
+     */
+    public boolean titleExists(String title, int excludeId) {
+        if (c == null) return false;
+
+        String sql = "SELECT COUNT(*) FROM JobPost WHERE LOWER(LTRIM(RTRIM(Title))) = LOWER(?) AND JobPostID <> ?";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, title);
+            ps.setInt(2, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            System.err.println("JobPostDAO.titleExists error: " + e.getMessage());
             return false;
         }
     }

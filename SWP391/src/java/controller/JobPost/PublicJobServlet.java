@@ -35,9 +35,7 @@ public class PublicJobServlet extends HttpServlet {
             request.setAttribute("job", job);
             request.getRequestDispatcher("/job_detail.jsp").forward(request, response);
         } else {
-            String keyword = request.getParameter("keyword");
-            request.setAttribute("keyword", keyword == null ? "" : keyword.trim());
-            request.setAttribute("jobList", jobPostDAO.getAllJobPosts());
+            request.setAttribute("jobList", jobPostDAO.getOpenJobPosts());
             jobPostDAO.closeConnection();
             request.getRequestDispatcher("/jobs.jsp").forward(request, response);
         }

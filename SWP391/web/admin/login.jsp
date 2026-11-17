@@ -130,6 +130,8 @@
                 text-transform: uppercase;
                 cursor: pointer;
                 transition: all 0.25s ease;
+                font-family: inherit;
+                line-height: 1.4;
                 box-shadow: 0 10px 24px rgba(63, 136, 197, 0.35);
             }
             .admin-login-card button:hover {

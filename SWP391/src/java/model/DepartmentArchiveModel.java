@@ -6,6 +6,7 @@ import java.util.List;
 public class DepartmentArchiveModel {
     private int archiveId;
     private int departmentId;
+    private String departmentName; // THÊM MỚI: Tên phòng ban sở hữu bản lưu trữ
     private String projectName;
     private Date archiveDate;
     private int totalTasks;
@@ -20,6 +21,11 @@ public class DepartmentArchiveModel {
     public void setArchiveId(int archiveId) { this.archiveId = archiveId; }
     public int getDepartmentId() { return departmentId; }
     public void setDepartmentId(int departmentId) { this.departmentId = departmentId; }
+    
+    // THÊM MỚI: Getter & Setter cho departmentName
+    public String getDepartmentName() { return departmentName; }
+    public void setDepartmentName(String departmentName) { this.departmentName = departmentName; }
+    
     public String getProjectName() { return projectName; }
     public void setProjectName(String projectName) { this.projectName = projectName; }
     public Date getArchiveDate() { return archiveDate; }

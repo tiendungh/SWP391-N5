@@ -29,14 +29,20 @@
             </c:if>
         </p>
         <div class="iv-document-meta">
-            <span><b>Ngày vào làm:</b> <fmt:formatDate value="${career.hireDate}" pattern="dd/MM/yyyy"/></span>
-            <span><b>Bắt đầu vị trí:</b> <fmt:formatDate value="${career.positionStartDate}" pattern="dd/MM/yyyy"/></span>
+            <span><b>Ngày vào làm:</b> <fmt:formatDate value="${career.hireDate}" pattern="d/MM/yyyy"/></span>
+            <span><b>Bắt đầu vị trí:</b> <fmt:formatDate value="${career.positionStartDate}" pattern="d/MM/yyyy"/></span>
             <span><b>Vai trò hệ thống:</b> <c:out value="${career.roleName}"/></span>
         </div>
     </div>
-    <div class="iv-profile-score">
-        <strong>${career.monthsInPosition} tháng</strong>
-        <span>Thời gian đã đảm nhiệm vị trí hiện tại</span>
+    <div class="iv-profile-score" style="display:flex; gap:28px; text-align:right;">
+        <div>
+            <strong>${career.monthsAtCompany} tháng</strong>
+            <span>Tổng thời gian làm việc tại công ty</span>
+        </div>
+        <div>
+            <strong>${career.monthsInPosition} tháng</strong>
+            <span>Thời gian đã đảm nhiệm vị trí hiện tại</span>
+        </div>
     </div>
 </div>
 
@@ -101,9 +107,9 @@
                                 <td><b><c:out value="${promotion.proposedPosition.positionName}"/></b></td>
                                 <td>
                                     <c:out value="${promotion.proposedByName}"/><br>
-                                    <span class="iv-small iv-muted"><fmt:formatDate value="${promotion.proposedAt}" pattern="dd/MM/yyyy HH:mm"/></span>
+                                    <span class="iv-small iv-muted"><fmt:formatDate value="${promotion.proposedAt}" pattern="d/MM/yyyy HH:mm"/></span>
                                 </td>
-                                <td><fmt:formatDate value="${promotion.effectiveDate}" pattern="dd/MM/yyyy"/></td>
+                                <td><fmt:formatDate value="${promotion.effectiveDate}" pattern="d/MM/yyyy"/></td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${promotion.status == 'Pending'}"><span class="iv-badge iv-badge-blue">Chờ duyệt</span></c:when>
@@ -144,10 +150,10 @@
                         </div>
                         <div class="iv-small iv-muted">
                             <c:out value="${history.department}"/> ·
-                            <fmt:formatDate value="${history.startDate}" pattern="dd/MM/yyyy"/> -
+                            <fmt:formatDate value="${history.startDate}" pattern="d/MM/yyyy"/> -
                             <c:choose>
                                 <c:when test="${empty history.endDate}">Hiện tại</c:when>
-                                <c:otherwise><fmt:formatDate value="${history.endDate}" pattern="dd/MM/yyyy"/></c:otherwise>
+                                <c:otherwise><fmt:formatDate value="${history.endDate}" pattern="d/MM/yyyy"/></c:otherwise>
                             </c:choose>
                         </div>
                         <c:if test="${not empty history.note}">

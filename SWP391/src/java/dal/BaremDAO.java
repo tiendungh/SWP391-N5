@@ -2,6 +2,7 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,8 @@ import model.BaremModel;
 import model.CriteriaModel;
 
 public class BaremDAO extends DBContext {
+
+    public static final int DUPLICATE = -2;
 
     /** Active barems already created for a given job post (used when scheduling an interview). */
     public List<BaremModel> getBaremsByJobPost(int jobPostId) {
@@ -29,6 +32,26 @@ public class BaremDAO extends DBContext {
             System.err.println("BaremDAO.getBaremsByJobPost error: " + e.getMessage());
         }
         return list;
+    }
+
+    /**
+     * True if a barem with this name already exists for the job post (active or not - the
+     * UQ_InterviewBarem_Job_Name constraint covers every row). Comparison uses the column
+     * collation, so it matches exactly what the unique constraint would reject.
+     */
+    public boolean existsBaremName(int jobPostId, String baremName) {
+        if (c == null) return false;
+        String sql = "SELECT 1 FROM InterviewBarem WHERE JobPostID = ? AND BaremName = ?";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, jobPostId);
+            ps.setString(2, baremName);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            System.err.println("BaremDAO.existsBaremName error: " + e.getMessage());
+            return false;
+        }
     }
 
     /** Full barem including its ordered criteria list - needed to render the scoring form. */
@@ -93,7 +116,9 @@ public class BaremDAO extends DBContext {
 
     /**
      * Quick-create: inserts the InterviewBarem header plus all of its criteria rows
-     * in a single transaction. Returns the new BaremID, or -1 on failure.
+     * in a single transaction. Returns the new BaremID, -1 on failure, or
+     * {@link #DUPLICATE} when a unique constraint (barem name per job post, or criteria
+     * name per barem) was violated.
      */
     public int createBaremWithCriteria(BaremModel barem, List<CriteriaModel> criteriaList) {
         if (c == null) return -1;
@@ -140,10 +165,21 @@ public class BaremDAO extends DBContext {
         } catch (Exception e) {
             System.err.println("BaremDAO.createBaremWithCriteria error: " + e.getMessage());
             try { c.rollback(); } catch (Exception ignored) {}
-            return -1;
+            return isDuplicateKey(e) ? DUPLICATE : -1;
         } finally {
             try { c.setAutoCommit(true); } catch (Exception ignored) {}
         }
+    }
+
+    /** SQL Server error 2627 / 2601 = unique constraint / unique index violation. */
+    private static boolean isDuplicateKey(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof SQLException) {
+                SQLException se = (SQLException) t;
+                if (se.getErrorCode() == 2627 || se.getErrorCode() == 2601) return true;
+            }
+        }
+        return false;
     }
 
     private BaremModel mapRow(ResultSet rs) throws Exception {

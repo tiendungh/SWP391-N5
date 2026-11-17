@@ -42,7 +42,7 @@
                             <div class="pb-job-item">
                                 <div>
                                     <h3>${j.title}</h3>
-                                    <div class="pb-meta">${j.location} · Hạn nộp: <fmt:formatDate value="${j.deadline}" pattern="dd/MM/yyyy"/></div>
+                                    <div class="pb-meta">${j.location} · Hạn nộp: <fmt:formatDate value="${j.deadline}" pattern="d/MM/yyyy"/></div>
                                     <div class="pb-tags">
                                         <span class="pb-tag">${j.category}</span>
                                         <c:if test="${not empty j.typeJob}"><span class="pb-tag teal">${j.typeJob}</span></c:if>

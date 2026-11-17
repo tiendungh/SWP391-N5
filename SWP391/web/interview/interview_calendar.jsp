@@ -32,7 +32,7 @@
             </select>
         </div>
         <div class="iv-field" style="justify-content:flex-end;">
-            <button type="submit" class="iv-btn" style="font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont">Lọc</button>
+            <button type="submit" class="iv-btn">Lọc</button>
         </div>
         <div class="iv-field" style="justify-content:flex-end;">
             <a class="iv-btn iv-btn-ghost" href="${pageContext.request.contextPath}/interview-calendar">Xóa lọc</a>
@@ -94,8 +94,10 @@
                                 </c:choose>
                             </td>
                             <td>
-                                <a class="iv-btn iv-btn-sm iv-btn-ghost" href="${pageContext.request.contextPath}/interview-evaluation?interviewId=${iv.interviewId}">Chấm điểm</a>
-                                <a class="iv-btn iv-btn-sm iv-btn-ghost" href="${pageContext.request.contextPath}/apply-conclusion?applyId=${iv.applyId}">Kết luận</a>
+                                <div style="display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:120px;">
+                                    <a class="iv-btn iv-btn-sm" style="justify-content:center; width:100%; box-sizing:border-box; white-space:nowrap; margin:0;" href="${pageContext.request.contextPath}/interview-evaluation?interviewId=${iv.interviewId}">Chấm điểm</a>
+                                    <a class="iv-btn iv-btn-sm" style="justify-content:center; width:100%; box-sizing:border-box; white-space:nowrap; margin:0;" href="${pageContext.request.contextPath}/apply-conclusion?applyId=${iv.applyId}">Kết luận</a>
+                                </div>
                             </td>
                         </tr>
                     </c:forEach>
