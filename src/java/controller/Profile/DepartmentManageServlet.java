@@ -20,12 +20,9 @@
 //import java.net.URLEncoder;
 //import java.nio.charset.StandardCharsets;
 //import java.util.List;
-//import java.util.Map;
 //
 //@WebServlet(name = "DepartmentManageServlet", urlPatterns = {"/department-manage"})
 //public class DepartmentManageServlet extends HttpServlet {
-//
-//    private final DepartmentDAO departmentDAO = new DepartmentDAO();
 //
 //    @Override
 //    protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -42,25 +39,29 @@
 //            }
 //        }
 //
+//        // BỔ SUNG: Nếu người dùng chọn 1 phòng ban từ dropdown -> chuyển hướng sang trang chi tiết phòng ban đó
+//        String selectedDept = request.getParameter("dept");
+//        if (selectedDept != null && !selectedDept.trim().isEmpty()) {
+//            response.sendRedirect(request.getContextPath() + "/department-detail?name=" 
+//                    + URLEncoder.encode(selectedDept.trim(), StandardCharsets.UTF_8));
+//            return;
+//        }
+//
+//        DepartmentDAO departmentDAO = new DepartmentDAO();
+//
 //        // 2. Lấy dữ liệu danh sách phòng ban kèm số lượng nhân sự
 //        List<DepartmentModel> departments = departmentDAO.getAllDepartmentsWithCount();
 //        if (departments == null || departments.isEmpty()) {
 //            departments = departmentDAO.getAllDepartments();
 //        }
 //        request.setAttribute("departments", departments);
-//
-//        // THÊM MỚI: Đón nhận tham số lọc phòng ban từ dropdown icon "⌄"
-//        String selectedDept = request.getParameter("dept");
-//        if (selectedDept != null) {
-//            selectedDept = selectedDept.trim();
-//        }
 //        request.setAttribute("selectedDept", selectedDept);
 //
-//        // THÊM MỚI: Lấy danh sách nhân sự trực thuộc phòng ban đang chọn (hoặc tất cả nếu chưa chọn)
-//        List<Map<String, Object>> employees = departmentDAO.getEmployeesByDepartment(selectedDept);
+//        // Lấy danh sách nhân sự trực thuộc phòng ban đang chọn (hoặc tất cả nếu chưa chọn)
+//        List employees = departmentDAO.getEmployeesByDepartment(selectedDept);
 //        request.setAttribute("employees", employees);
 //
-//        // THÊM MỚI: Tính tổng số nhân sự đang hoạt động
+//        // Tính tổng số nhân sự đang hoạt động
 //        int totalEmployees = 0;
 //        if (departments != null) {
 //            for (DepartmentModel d : departments) {
@@ -69,7 +70,7 @@
 //        }
 //        request.setAttribute("totalEmployees", totalEmployees);
 //
-//        // THÊM MỚI: Lấy danh sách nhân viên từ StaffDAO để phục vụ form chọn nhân sự cần phân công
+//        // Lấy danh sách nhân viên từ StaffDAO để phục vụ form chọn nhân sự cần phân công
 //        StaffDAO staffDAO = new StaffDAO();
 //        List<StaffModel> staffList = staffDAO.getActiveStaff();
 //        request.setAttribute("staffList", staffList);
@@ -92,12 +93,37 @@
 //            }
 //        }
 //
+//        DepartmentDAO departmentDAO = new DepartmentDAO();
 //        String action = request.getParameter("action");
 //        if ("createDepartment".equals(action)) {
 //            String name = request.getParameter("departmentName");
 //            String desc = request.getParameter("description");
-//            departmentDAO.addDepartment(name, desc, null);
-//            response.sendRedirect(request.getContextPath() + "/profile/department-manage?status=created");
+//            String managerIdStr = request.getParameter("managerId");
+//
+//            if (name == null || name.trim().isEmpty()) {
+//                response.sendRedirect(request.getContextPath() + "/department-manage?error=empty_name");
+//                return;
+//            }
+//            if (departmentDAO.isDepartmentNameExists(name)) {
+//                response.sendRedirect(request.getContextPath() + "/department-manage?error=duplicate_name");
+//                return;
+//            }
+//
+//            Integer leaderEmpId = null;
+//            if (managerIdStr != null && !managerIdStr.trim().isEmpty()) {
+//                try {
+//                    leaderEmpId = Integer.parseInt(managerIdStr.trim());
+//                } catch (NumberFormatException ignored) {}
+//            }
+//
+//            int newDeptId = departmentDAO.createDepartmentWithLeader(name, desc, leaderEmpId);
+//            if (newDeptId > 0) {
+//                // Đồng bộ ngay sang session của LeaderRoom để khi chuyển qua Quản lý phòng thấy phòng mới ngay
+//                session.setAttribute("currentViewDeptId", newDeptId);
+//                response.sendRedirect(request.getContextPath() + "/department-manage?status=created");
+//            } else {
+//                response.sendRedirect(request.getContextPath() + "/department-manage?error=create_failed");
+//            }
 //            return;
 //        } else if ("assignMember".equals(action)) {
 //            try {
@@ -108,21 +134,22 @@
 //
 //                departmentDAO.assignEmployeeToDepartment(employeeId, departmentName, position, note);
 //
-//                String redirectUrl = request.getContextPath() + "/profile/department-manage?status=assigned";
+//                String redirectUrl = request.getContextPath() + "/department-manage?status=assigned";
 //                if (departmentName != null && !departmentName.isEmpty()) {
 //                    redirectUrl += "&dept=" + URLEncoder.encode(departmentName, StandardCharsets.UTF_8);
 //                }
 //                response.sendRedirect(redirectUrl);
 //                return;
 //            } catch (Exception e) {
-//                response.sendRedirect(request.getContextPath() + "/profile/department-manage?error=invalid_data");
+//                response.sendRedirect(request.getContextPath() + "/department-manage?error=invalid_data");
 //                return;
 //            }
 //        }
 //
-//        response.sendRedirect(request.getContextPath() + "/profile/department-manage?status=success");
+//        response.sendRedirect(request.getContextPath() + "/department-manage?status=success");
 //    }
 //}
+
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -146,12 +173,9 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 
 @WebServlet(name = "DepartmentManageServlet", urlPatterns = {"/department-manage"})
 public class DepartmentManageServlet extends HttpServlet {
-
-    private final DepartmentDAO departmentDAO = new DepartmentDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -176,6 +200,8 @@ public class DepartmentManageServlet extends HttpServlet {
             return;
         }
 
+        DepartmentDAO departmentDAO = new DepartmentDAO();
+
         // 2. Lấy dữ liệu danh sách phòng ban kèm số lượng nhân sự
         List<DepartmentModel> departments = departmentDAO.getAllDepartmentsWithCount();
         if (departments == null || departments.isEmpty()) {
@@ -185,7 +211,7 @@ public class DepartmentManageServlet extends HttpServlet {
         request.setAttribute("selectedDept", selectedDept);
 
         // Lấy danh sách nhân sự trực thuộc phòng ban đang chọn (hoặc tất cả nếu chưa chọn)
-        List<Map<String, Object>> employees = departmentDAO.getEmployeesByDepartment(selectedDept);
+        List employees = departmentDAO.getEmployeesByDepartment(selectedDept);
         request.setAttribute("employees", employees);
 
         // Tính tổng số nhân sự đang hoạt động
@@ -220,12 +246,37 @@ public class DepartmentManageServlet extends HttpServlet {
             }
         }
 
+        DepartmentDAO departmentDAO = new DepartmentDAO();
         String action = request.getParameter("action");
         if ("createDepartment".equals(action)) {
             String name = request.getParameter("departmentName");
             String desc = request.getParameter("description");
-            departmentDAO.addDepartment(name, desc, null);
-            response.sendRedirect(request.getContextPath() + "/department-manage?status=created");
+            String managerIdStr = request.getParameter("managerId");
+
+            if (name == null || name.trim().isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/department-manage?error=empty_name");
+                return;
+            }
+            if (departmentDAO.isDepartmentNameExists(name)) {
+                response.sendRedirect(request.getContextPath() + "/department-manage?error=duplicate_name");
+                return;
+            }
+
+            Integer leaderEmpId = null;
+            if (managerIdStr != null && !managerIdStr.trim().isEmpty()) {
+                try {
+                    leaderEmpId = Integer.parseInt(managerIdStr.trim());
+                } catch (NumberFormatException ignored) {}
+            }
+
+            int newDeptId = departmentDAO.createDepartmentWithLeader(name, desc, leaderEmpId);
+            if (newDeptId > 0) {
+                // Đồng bộ ngay sang session của LeaderRoom để khi chuyển qua Quản lý phòng thấy phòng mới ngay
+                session.setAttribute("currentViewDeptId", newDeptId);
+                response.sendRedirect(request.getContextPath() + "/department-manage?status=created");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/department-manage?error=create_failed");
+            }
             return;
         } else if ("assignMember".equals(action)) {
             try {
@@ -244,6 +295,41 @@ public class DepartmentManageServlet extends HttpServlet {
                 return;
             } catch (Exception e) {
                 response.sendRedirect(request.getContextPath() + "/department-manage?error=invalid_data");
+                return;
+            }
+        } else if ("deleteDepartment".equals(action)) {
+            try {
+                String deptIdStr = request.getParameter("departmentId");
+                if (deptIdStr == null || deptIdStr.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/department-manage?error=missing_dept");
+                    return;
+                }
+
+                int deptId = Integer.parseInt(deptIdStr.trim());
+                int empCount = departmentDAO.countEmployeesInDepartment(deptId);
+
+                if (empCount > 0) {
+                    response.sendRedirect(request.getContextPath() + "/department-manage?error=has_employees");
+                    return;
+                }
+                if (empCount < 0) {
+                    response.sendRedirect(request.getContextPath() + "/department-manage?error=delete_failed");
+                    return;
+                }
+
+                boolean deleted = departmentDAO.deleteDepartmentIfEmpty(deptId);
+                if (deleted) {
+                    Object curViewId = session.getAttribute("currentViewDeptId");
+                    if (curViewId != null && curViewId.toString().equals(String.valueOf(deptId))) {
+                        session.removeAttribute("currentViewDeptId");
+                    }
+                    response.sendRedirect(request.getContextPath() + "/department-manage?status=deleted");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/department-manage?error=has_employees");
+                }
+                return;
+            } catch (Exception e) {
+                response.sendRedirect(request.getContextPath() + "/department-manage?error=delete_failed");
                 return;
             }
         }

@@ -72,6 +72,108 @@ public class DepartmentDAO extends DBContext {
         }
     }
 
+    // =========================================================================
+    // THÊM MỚI: KIỂM TRA TRÙNG TÊN & TẠO PHÒNG BAN MỚI ĐỒNG BỘ LEADER ROOM
+    // =========================================================================
+
+    // Kiểm tra tên phòng ban đã tồn tại chưa (không phân biệt hoa thường / khoảng trắng thừa)
+    public boolean isDepartmentNameExists(String departmentName) {
+        if (c == null || departmentName == null || departmentName.trim().isEmpty()) return false;
+        String sql = "SELECT 1 FROM dbo.Department WHERE LOWER(LTRIM(RTRIM(DepartmentName))) = LOWER(LTRIM(RTRIM(?)))";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setNString(1, departmentName.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            System.err.println("DepartmentDAO.isDepartmentNameExists error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Tạo phòng ban mới + tùy chọn bổ nhiệm Trưởng phòng & đồng bộ sang Employee + EmployeePositionHistory
+    public int createDepartmentWithLeader(String departmentName, String description, Integer leaderEmpId) {
+        if (c == null || departmentName == null || departmentName.trim().isEmpty()) return -1;
+        String cleanName = departmentName.trim();
+        String cleanDesc = (description != null && !description.trim().isEmpty())
+                ? description.trim()
+                : "Phòng ban " + cleanName;
+
+        boolean originalAutoCommit = true;
+        try {
+            originalAutoCommit = c.getAutoCommit();
+            c.setAutoCommit(false);
+
+            // 1. Tạo bản ghi mới trong dbo.Department
+            int newDeptId = -1;
+            String insertDeptSql = "INSERT INTO dbo.Department (DepartmentName, Description, ManagerID) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = c.prepareStatement(insertDeptSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setNString(1, cleanName);
+                ps.setNString(2, cleanDesc);
+                if (leaderEmpId != null && leaderEmpId > 0) {
+                    ps.setInt(3, leaderEmpId);
+                } else {
+                    ps.setNull(3, Types.INTEGER);
+                }
+                ps.executeUpdate();
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) newDeptId = rs.getInt(1);
+                }
+            }
+
+            // 2. Nếu chọn Trưởng phòng ngay lúc tạo -> gỡ quyền Leader cũ (nếu có), chuyển phòng ban & ghi lịch sử công tác
+            if (newDeptId > 0 && leaderEmpId != null && leaderEmpId > 0) {
+                String clearOldLeaderSql = "UPDATE dbo.Department SET ManagerID = NULL WHERE ManagerID = ? AND DepartmentID <> ?";
+                try (PreparedStatement psClear = c.prepareStatement(clearOldLeaderSql)) {
+                    psClear.setInt(1, leaderEmpId);
+                    psClear.setInt(2, newDeptId);
+                    psClear.executeUpdate();
+                }
+
+                String closeHistorySql = "UPDATE dbo.EmployeePositionHistory SET EndDate = CAST(GETDATE() AS DATE) "
+                                       + "WHERE EmployeeID = ? AND EndDate IS NULL";
+                try (PreparedStatement psClose = c.prepareStatement(closeHistorySql)) {
+                    psClose.setInt(1, leaderEmpId);
+                    psClose.executeUpdate();
+                }
+
+                String updateEmpSql = "UPDATE dbo.Employee SET Department = ?, Position = N'Trưởng nhóm / Leader' WHERE EmployeeID = ?";
+                try (PreparedStatement psEmp = c.prepareStatement(updateEmpSql)) {
+                    psEmp.setNString(1, cleanName);
+                    psEmp.setInt(2, leaderEmpId);
+                    psEmp.executeUpdate();
+                }
+
+                String insertHistorySql = "INSERT INTO dbo.EmployeePositionHistory (EmployeeID, RoleID, Position, Department, StartDate, Note) "
+                                        + "SELECT EmployeeID, RoleID, N'Trưởng nhóm / Leader', ?, CAST(GETDATE() AS DATE), ? "
+                                        + "FROM dbo.Employee WHERE EmployeeID = ?";
+                try (PreparedStatement psHist = c.prepareStatement(insertHistorySql)) {
+                    psHist.setNString(1, cleanName);
+                    psHist.setNString(2, "Bổ nhiệm Trưởng phòng khi thành lập phòng: " + cleanName);
+                    psHist.setInt(3, leaderEmpId);
+                    psHist.executeUpdate();
+                }
+            }
+
+            c.commit();
+            return newDeptId;
+        } catch (Exception e) {
+            try {
+                if (c != null) c.rollback();
+            } catch (Exception ex) {
+                System.err.println("DepartmentDAO.createDepartmentWithLeader rollback error: " + ex.getMessage());
+            }
+            System.err.println("DepartmentDAO.createDepartmentWithLeader error: " + e.getMessage());
+            return -1;
+        } finally {
+            try {
+                if (c != null) c.setAutoCommit(originalAutoCommit);
+            } catch (Exception ex) {
+                System.err.println("DepartmentDAO.createDepartmentWithLeader reset autoCommit error: " + ex.getMessage());
+            }
+        }
+    }
+
     // Gán nhân sự vào phòng ban và ghi nhận lịch sử vào EmployeePositionHistory
     public boolean assignEmployeeToDepartment(int employeeId, String departmentName, String position, String note) {
         if (c == null) return false;
@@ -892,4 +994,57 @@ public class DepartmentDAO extends DBContext {
         }
         return false;
     }
+    
+    
+    // hàm mới
+    public String getDepartmentNameById(int departmentId) {
+    String sql = "SELECT DepartmentName FROM dbo.Department WHERE DepartmentID = ?";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, departmentId);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString("DepartmentName");
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+public int countEmployeesInDepartment(int departmentId) {
+    String deptName = getDepartmentNameById(departmentId);
+    if (deptName == null || deptName.trim().isEmpty()) {
+        return -1;
+    }
+
+    String sql = "SELECT COUNT(*) FROM dbo.Employee WHERE Department = ?";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, deptName.trim());
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return -1;
+}
+
+public boolean deleteDepartmentIfEmpty(int departmentId) {
+    int empCount = countEmployeesInDepartment(departmentId);
+    if (empCount != 0) {
+        return false;
+    }
+
+    String sql = "DELETE FROM dbo.Department WHERE DepartmentID = ?";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, departmentId);
+        return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 }

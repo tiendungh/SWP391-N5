@@ -3,13 +3,18 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/leader_assign_task.jsp</file>
             <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/interview/staff_header.jsp</file>
             <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/leader_archive_detail.jsp</file>
             <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/leader_archive.jsp</file>
             <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/src/java/controller/Profile/LeaderRoomServlet.java</file>
-            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/leader_no_permission.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/src/java/controller/Profile/MyProfileDocumentsServlet.java</file>
             <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/leader_progress.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/leader_assign_task.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/src/java/controller/Profile/EmployeeProfileManageServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/src/java/controller/Profile/DepartmentManageServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/department_manage.jsp</file>
+            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/src/java/controller/Profile/DepartmentMemberEditServlet.java</file>
+            <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/web/profile/leader_no_permission.jsp</file>
             <file>file:/D:/swpppp/SWP391-N5-UIandFixes/SWP391-N5-UIandFixes/SWP391/src/java/dal/DepartmentDAO.java</file>
         </group>
     </open-files>

@@ -1,222 +1,3 @@
-<%--<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<c:set var="pageTitle" value="Tổ chức phòng ban" scope="request"/>
-<c:set var="currentNav" value="deptOrg" scope="request"/>
-<jsp:include page="/interview/staff_header.jsp"/>
-
-<style>
-    .dept-container { display: flex; flex-direction: column; gap: 20px; }
-    .dept-stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
-    .dept-stat-card {
-        background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;
-    }
-    .dept-stat-card .val { font-size: 1.7rem; font-weight: 700; color: #1e293b; }
-    .dept-stat-card .lbl { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
-    .dept-filter-bar {
-        background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px 20px;
-        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;
-    }
-    .dept-select-wrap { position: relative; width: 380px; max-width: 100%; }
-    .dept-select-custom {
-        width: 100%; padding: 10px 40px 10px 14px; font-size: 0.95rem; border: 1.5px solid #cbd5e1;
-        border-radius: 8px; appearance: none; -webkit-appearance: none; background: #fff; cursor: pointer;
-        font-weight: 500; color: #1e293b; outline: none; transition: border-color .2s;
-    }
-    .dept-select-custom:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-    .dept-select-icon {
-        position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-        pointer-events: none; font-size: 0.85rem; font-weight: bold; color: #475569;
-    }
-    .dept-assign-box {
-        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px;
-    }
-</style>
-
-<div class="iv-topbar">
-    <div>
-        <h1>Tổ chức & Phân bổ phòng ban</h1>
-        <p>Quản lý sơ đồ cơ cấu tổ chức doanh nghiệp và điều chuyển vị trí nhân sự.</p>
-    </div>
-    <div class="iv-whoami">Xin chào, <b><c:out value="${sessionScope.staffName}"/></b></div>
-</div>
-
-<c:if test="${not empty error}"><div class="iv-alert iv-alert-error"><c:out value="${error}"/></div></c:if>
-<c:if test="${param.assigned == '1'}"><div class="iv-alert iv-alert-success">Cập nhật và gán nhân sự vào phòng ban thành công!</div></c:if>
-
-<div class="dept-container">
-
-    <!-- KHỐI 1: BỘ CHỈ SỐ THỐNG KÊ (DASHBOARD WIDGETS) -->
-    <div class="dept-stats-row">
-        <div class="dept-stat-card">
-            <div>
-                <div class="val">${departments.size()}</div>
-                <div class="lbl">Tổng số phòng ban</div>
-            </div>
-            <div style="font-size: 2rem;">🏢</div>
-        </div>
-        <div class="dept-stat-card">
-            <div>
-                <div class="val">${totalEmployees}</div>
-                <div class="lbl">Tổng nhân sự chính thức</div>
-            </div>
-            <div style="font-size: 2rem;">👥</div>
-        </div>
-        <div class="dept-stat-card">
-            <div>
-                <div class="val">${employees.size()}</div>
-                <div class="lbl">Nhân sự trong bộ lọc</div>
-            </div>
-            <div style="font-size: 2rem;">🎯</div>
-        </div>
-    </div>
-
-    <!-- KHỐI 2: THANH LỌC VỚI DROPDOWN ICON "V" & CÔNG CỤ NHANH -->
-    <div class="dept-filter-bar">
-        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-            <label style="font-weight: 600; color: #334155; margin: 0;">Chọn phòng ban:</label>
-            <div class="dept-select-wrap">
-                <select class="dept-select-custom" onchange="location.href='${pageContext.request.contextPath}/department-organization' + (this.value ? '?dept=' + encodeURIComponent(this.value) : '')">
-                    <option value="">-- Tất cả phòng ban (${departments.size()}) --</option>
-                    <c:forEach var="dept" items="${departments}">
-                        <option value="${dept.departmentName}" ${selectedDept eq dept.departmentName ? 'selected' : ''}>
-                            ${dept.departmentName} (${dept.employeeCount} nhân sự)
-                        </option>
-                    </c:forEach>
-                </select>
-                <span class="dept-select-icon">⌄</span>
-            </div>
-        </div>
-
-        <button type="button" class="iv-btn" onclick="toggleAssignForm()" style="display: flex; align-items: center; gap: 6px;">
-            Phân công / Điều chuyển nhân sự
-        </button>
-    </div>
-
-    <!-- KHỐI 3: FORM ĐIỀU CHUYỂN NHÂN SỰ VÀO PHÒNG BAN -->
-    <div id="assignFormBlock" class="dept-assign-box" style="display: none;">
-        <div class="iv-section-head" style="margin-bottom: 15px;">
-            <div>
-                <h3 style="margin: 0; font-size: 1.15rem;">Bổ nhiệm & Điều chuyển công tác</h3>
-                <span class="iv-small iv-muted">Gán nhân viên vào phòng ban trực thuộc và lưu lại lịch sử luân chuyển.</span>
-            </div>
-            <button type="button" class="iv-btn iv-btn-sm iv-btn-gray" onclick="toggleAssignForm()">Đóng</button>
-        </div>
-
-        <form method="post" action="${pageContext.request.contextPath}/department-organization">
-            <input type="hidden" name="action" value="assign"/>
-            <div class="iv-form-row">
-                <div class="iv-field">
-                    <label>Nhân sự *</label>
-                    <select name="employeeId" required>
-                        <option value="">-- Chọn nhân sự cần phân công --</option>
-                        <c:forEach var="emp" items="${allEmployeeList}">
-                            <option value="${emp.employeeId}"><c:out value="${emp.fullName}"/> (<c:out value="${emp.email}"/>)</option>
-                        </c:forEach>
-                    </select>
-                </div>
-                <div class="iv-field">
-                    <label>Phòng ban chỉ định *</label>
-                    <select name="department" required>
-                        <option value="">-- Chọn phòng ban --</option>
-                        <c:forEach var="dept" items="${departments}">
-                            <option value="${dept.departmentName}" ${selectedDept eq dept.departmentName ? 'selected' : ''}>
-                                ${dept.departmentName}
-                            </option>
-                        </c:forEach>
-                    </select>
-                </div>
-                <div class="iv-field">
-                    <label>Chức danh / Vị trí *</label>
-                    <input type="text" name="position" placeholder="Ví dụ: Trưởng nhóm, Developer, Chuyên viên..." required/>
-                </div>
-            </div>
-            <div class="iv-form-row">
-                <div class="iv-field" style="flex: 2;">
-                    <label>Ghi chú điều chuyển</label>
-                    <input type="text" name="note" placeholder="Lý do bổ nhiệm, quyết định số..."/>
-                </div>
-                <div class="iv-field" style="flex: 1; align-self: flex-end;">
-                    <button class="iv-btn" style="width: 100%;" type="submit">Xác nhận phân công</button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- KHỐI 4: DANH SÁCH NHÂN SỰ THEO PHÒNG BAN -->
-    <div class="iv-card">
-        <div class="iv-section-head">
-            <div>
-                <h2>
-                    <c:choose>
-                        <c:when test="${not empty selectedDept}">Nhân sự phòng: <span style="color: #2563eb;">${selectedDept}</span></c:when>
-                        <c:otherwise>Toàn bộ danh sách nhân sự (${employees.size()})</c:otherwise>
-                    </c:choose>
-                </h2>
-                <span class="iv-small iv-muted">Danh sách nhân sự hiện đang công tác theo cơ cấu tổ chức.</span>
-            </div>
-        </div>
-
-        <c:choose>
-            <c:when test="${empty employees}">
-                <div class="iv-empty">Phòng ban này hiện chưa có nhân sự nào được phân công. Hãy bấm nút <b>"Phân công / Điều chuyển nhân sự"</b> để bắt đầu.</div>
-            </c:when>
-            <c:otherwise>
-                <div class="iv-table-wrap">
-                    <table class="iv-table">
-                        <thead>
-                            <tr>
-                                <th>Mã NV</th>
-                                <th>Họ và tên</th>
-                                <th>Phòng ban</th>
-                                <th>Chức danh / Vị trí</th>
-                                <th>Liên hệ</th>
-                                <th>Vai trò</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach var="e" items="${employees}">
-                                <tr>
-                                    <td><b><c:out value="${not empty e.employeeCode ? e.employeeCode : '—'}"/></b></td>
-                                    <td><b><c:out value="${e.fullName}"/></b></td>
-                                    <td>
-                                        <span class="iv-badge iv-badge-blue">
-                                            <c:out value="${not empty e.department ? e.department : 'Chưa phân công'}"/>
-                                        </span>
-                                    </td>
-                                    <td><b><c:out value="${not empty e.position ? e.position : '—'}"/></b></td>
-                                    <td>
-                                        <c:out value="${e.email}"/><br>
-                                        <span class="iv-small iv-muted"><c:out value="${e.phone}"/></span>
-                                    </td>
-                                    <td><span class="iv-badge iv-badge-gray"><c:out value="${e.roleName}"/></span></td>
-                                </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </c:otherwise>
-        </c:choose>
-    </div>
-
-</div>
-
-<script>
-    function toggleAssignForm() {
-        var form = document.getElementById("assignFormBlock");
-        if (form.style.display === "none" || form.style.display === "") {
-            form.style.display = "block";
-            form.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            form.style.display = "none";
-        }
-    }
-</script>
-
-<jsp:include page="/interview/staff_footer.jsp"/>--%>
-
-
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -271,6 +52,14 @@
 </div>
 
 <c:if test="${not empty error}"><div class="iv-alert iv-alert-error"><c:out value="${error}"/></div></c:if>
+<c:if test="${param.error == 'duplicate_name'}"><div class="iv-alert iv-alert-error">Tên phòng ban này đã tồn tại, vui lòng nhập tên khác!</div></c:if>
+<c:if test="${param.error == 'empty_name'}"><div class="iv-alert iv-alert-error">Vui lòng nhập tên phòng ban trước khi lưu!</div></c:if>
+<c:if test="${param.error == 'create_failed'}"><div class="iv-alert iv-alert-error">Không thể tạo phòng ban mới, vui lòng kiểm tra lại dữ liệu!</div></c:if>
+<c:if test="${param.error == 'has_employees'}"><div class="iv-alert iv-alert-error">Không thể xóa phòng ban vì vẫn còn nhân sự trong phòng! Vui lòng điều chuyển hết nhân sự trước khi xóa.</div></c:if>
+<c:if test="${param.error == 'missing_dept'}"><div class="iv-alert iv-alert-error">Vui lòng chọn phòng ban cần xóa!</div></c:if>
+<c:if test="${param.error == 'delete_failed'}"><div class="iv-alert iv-alert-error">Không thể xóa phòng ban do lỗi dữ liệu hoặc ràng buộc hệ thống!</div></c:if>
+<c:if test="${param.status == 'created'}"><div class="iv-alert iv-alert-success">Tạo phòng ban mới thành công và đã đồng bộ sang Quản lý phòng!</div></c:if>
+<c:if test="${param.status == 'deleted'}"><div class="iv-alert iv-alert-success">Đã xóa phòng ban thành công!</div></c:if>
 <c:if test="${param.assigned == '1' || param.status == 'assigned'}"><div class="iv-alert iv-alert-success">Cập nhật và gán nhân sự vào phòng ban thành công!</div></c:if>
 
 <div class="dept-container">
@@ -318,9 +107,93 @@
             </div>
         </div>
 
-        <button type="button" class="iv-btn" onclick="toggleAssignForm()" style="display: flex; align-items: center; gap: 6px;">
-            Phân công / Điều chuyển nhân sự
-        </button>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <%-- THÊM MỚI: Nút Tạo phòng ban --%>
+            <button type="button" class="iv-btn" onclick="toggleCreateDeptForm()" style="background: #059669; display: flex; align-items: center; gap: 6px;">
+                + Tạo phòng ban
+            </button>
+
+            <%-- THÊM MỚI: Nút Xóa phòng ban --%>
+            <button type="button" class="iv-btn" onclick="toggleDeleteDeptForm()" style="background: #dc2626; display: flex; align-items: center; gap: 6px;">
+                Xóa phòng ban
+            </button>
+
+            <button type="button" class="iv-btn" onclick="toggleAssignForm()" style="display: flex; align-items: center; gap: 6px;">
+                Phân công / Điều chuyển nhân sự
+            </button>
+        </div>
+    </div>
+
+    <!-- THÊM MỚI: FORM TẠO PHÒNG BAN MỚI -->
+    <div id="createDeptBlock" class="dept-assign-box" style="display: none; margin-bottom: 0;">
+        <div class="iv-section-head" style="margin-bottom: 15px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem;">Khởi tạo phòng ban mới</h3>
+                <span class="iv-small iv-muted">Thêm phòng ban mới vào hệ thống và đồng bộ ngay tới Quản lý phòng (Leader Room).</span>
+            </div>
+            <button type="button" class="iv-btn iv-btn-sm iv-btn-gray" onclick="toggleCreateDeptForm()">Đóng</button>
+        </div>
+
+        <form method="post" action="${pageContext.request.contextPath}/department-manage">
+            <input type="hidden" name="action" value="createDepartment"/>
+            <div class="iv-form-row">
+                <div class="iv-field">
+                    <label>Tên phòng ban *</label>
+                    <input type="text" name="departmentName" placeholder="Ví dụ: Phòng Nghiên cứu & Phát triển (R&D)" required/>
+                </div>
+                <div class="iv-field">
+                    <label>Trưởng phòng phụ trách (Tùy chọn)</label>
+                    <select name="managerId">
+                        <option value="">-- Chưa bổ nhiệm (Để trống) --</option>
+                        <c:forEach var="emp" items="${not empty staffList ? staffList : allEmployeeList}">
+                            <option value="${not empty emp.staffId ? emp.staffId : emp.employeeId}">
+                                <c:out value="${emp.fullName}"/> (<c:out value="${emp.email}"/>)
+                            </option>
+                        </c:forEach>
+                    </select>
+                </div>
+            </div>
+            <div class="iv-form-row">
+                <div class="iv-field" style="flex: 2;">
+                    <label>Mô tả chức năng / Nhiệm vụ</label>
+                    <input type="text" name="description" placeholder="Nhập mô tả ngắn gọn về phòng ban..."/>
+                </div>
+                <div class="iv-field" style="flex: 1; align-self: flex-end;">
+                    <button class="iv-btn" style="width: 100%; background: #059669;" type="submit">Lưu phòng ban mới</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- THÊM MỚI: FORM XÓA PHÒNG BAN -->
+    <div id="deleteDeptBlock" class="dept-assign-box" style="display: none; margin-bottom: 0; border-color: #fecaca; background: #fef2f2;">
+        <div class="iv-section-head" style="margin-bottom: 15px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; color: #991b1b;">Xóa phòng ban</h3>
+                <span class="iv-small iv-muted">Chỉ xóa được phòng ban khi không còn nhân sự nào thuộc phòng.</span>
+            </div>
+            <button type="button" class="iv-btn iv-btn-sm iv-btn-gray" onclick="toggleDeleteDeptForm()">Đóng</button>
+        </div>
+
+        <form method="post" action="${pageContext.request.contextPath}/department-manage">
+            <input type="hidden" name="action" value="deleteDepartment"/>
+            <div class="iv-form-row">
+                <div class="iv-field" style="flex: 2;">
+                    <label>Chọn phòng ban cần xóa *</label>
+                    <select name="departmentId" required>
+                        <option value="">-- Chọn phòng ban --</option>
+                        <c:forEach var="dept" items="${departments}">
+                            <option value="${dept.departmentId}">
+                                ${dept.departmentName} (${dept.employeeCount} nhân sự)
+                            </option>
+                        </c:forEach>
+                    </select>
+                </div>
+                <div class="iv-field" style="flex: 1; align-self: flex-end;">
+                    <button class="iv-btn" style="width: 100%; background: #dc2626;" type="submit">Xác nhận xóa phòng ban</button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- KHỐI 3: FORM ĐIỀU CHUYỂN NHÂN SỰ VÀO PHÒNG BAN -->
@@ -454,10 +327,42 @@
         }
     }
 
-    function toggleAssignForm() {
-        var form = document.getElementById("assignFormBlock");
+    function toggleCreateDeptForm() {
+        var form = document.getElementById("createDeptBlock");
+        var deleteForm = document.getElementById("deleteDeptBlock");
+        var assignForm = document.getElementById("assignFormBlock");
         if (form.style.display === "none" || form.style.display === "") {
             form.style.display = "block";
+            if (deleteForm) deleteForm.style.display = "none";
+            if (assignForm) assignForm.style.display = "none";
+            form.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            form.style.display = "none";
+        }
+    }
+
+    function toggleDeleteDeptForm() {
+        var form = document.getElementById("deleteDeptBlock");
+        var createForm = document.getElementById("createDeptBlock");
+        var assignForm = document.getElementById("assignFormBlock");
+        if (form.style.display === "none" || form.style.display === "") {
+            form.style.display = "block";
+            if (createForm) createForm.style.display = "none";
+            if (assignForm) assignForm.style.display = "none";
+            form.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            form.style.display = "none";
+        }
+    }
+
+    function toggleAssignForm() {
+        var form = document.getElementById("assignFormBlock");
+        var createForm = document.getElementById("createDeptBlock");
+        var deleteForm = document.getElementById("deleteDeptBlock");
+        if (form.style.display === "none" || form.style.display === "") {
+            form.style.display = "block";
+            if (createForm) createForm.style.display = "none";
+            if (deleteForm) deleteForm.style.display = "none";
             form.scrollIntoView({ behavior: 'smooth' });
         } else {
             form.style.display = "none";

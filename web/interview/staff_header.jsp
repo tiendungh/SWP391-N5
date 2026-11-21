@@ -114,25 +114,27 @@
                         }
                     %>
 
-                    <%-- TRƯỜNG HỢP 1: ADMIN / MANAGER -> CÓ DROPDOWN CHUYỂN ĐỔI 16 PHÒNG BAN --%>
+                    <%-- TRƯỜNG HỢP 1: ADMIN / MANAGER -> CÓ DROPDOWN CHUYỂN ĐỔI CÁC PHÒNG BAN --%>
                     <c:if test="${isSidebarManager}">
+                        <c:set var="activeSidebarDeptId" value="${not empty leaderDept ? leaderDept.departmentId : sessionScope.currentViewDeptId}"/>
+                        <c:set var="fallbackDeptId" value="${not empty activeSidebarDeptId ? activeSidebarDeptId : (not empty sidebarAllDepts ? sidebarAllDepts[0].departmentId : 0)}"/>
                         <div class="leader-menu-group">
                             <span class="leader-menu-title">Quản lý phòng:</span>
                             <select class="leader-dept-select" onchange="onSidebarSwitchDept(this.value)">
                                 <c:forEach var="d" items="${sidebarAllDepts}">
-                                    <option value="${d.departmentId}" ${leaderDept.departmentId == d.departmentId ? 'selected' : ''}>
+                                    <option value="${d.departmentId}" ${activeSidebarDeptId == d.departmentId ? 'selected' : ''}>
                                         ${d.departmentName} (${d.employeeCount} NV)
                                     </option>
                                 </c:forEach>
                             </select>
                             <div class="leader-sub-nav">
-                                <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=members&deptId=${fallbackDeptId}"
                                    class="${currentNav == 'leaderMembers' ? 'active' : ''}">Quản lý nhân viên</a>
-                                <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=topics&deptId=${fallbackDeptId}"
                                    class="${currentNav == 'leaderTopics' ? 'active' : ''}">Chủ đề + Phân công</a>
-                                <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=progress&deptId=${fallbackDeptId}"
                                    class="${currentNav == 'leaderProgress' ? 'active' : ''}">Tổng kết tiến độ</a>
-                                <a href="${pageContext.request.contextPath}/leader-room?tab=archive&deptId=${not empty leaderDept ? leaderDept.departmentId : (sidebarAllDepts[0].departmentId)}"
+                                <a href="${pageContext.request.contextPath}/leader-room?tab=archive&deptId=${fallbackDeptId}"
                                    class="${currentNav == 'leaderArchive' ? 'active' : ''}">Kho lưu trữ</a>
                             </div>
                         </div>
