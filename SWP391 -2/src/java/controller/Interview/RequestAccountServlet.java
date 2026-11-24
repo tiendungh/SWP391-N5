@@ -95,15 +95,6 @@ public class RequestAccountServlet extends HttpServlet {
             return;
         }
 
-        AccountDAO accountDAO = new AccountDAO();
-        boolean alreadyHasAccount = accountDAO.emailExists(email);
-        accountDAO.closeConnection();
-        if (alreadyHasAccount) {
-            request.setAttribute("error", "Email này đã có tài khoản trong hệ thống.");
-            renderPage(request, response);
-            return;
-        }
-
         AccountRequestDAO dao = new AccountRequestDAO();
         int newId = dao.createRequest(email, fullName, phone, address, nationality, department, position,
                 roleId, salary, note, SessionUtil.getStaffId(request));

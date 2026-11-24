@@ -29,7 +29,7 @@ public class EmailSender {
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
     private static final String SMTP_USERNAME = "illreturnlmao@gmail.com";
-    private static final String SMTP_PASSWORD = "xndhplwcjmqpxtra";
+    private static final String SMTP_PASSWORD = "skblfwlhasngskwr";
     private static final String FROM_NAME = "COMPANY NAME Tuyển dụng";
 
     public static boolean sendActivationEmail(String toEmail, String toName,
