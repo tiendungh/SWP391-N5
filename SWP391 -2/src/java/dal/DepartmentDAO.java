@@ -428,20 +428,22 @@ public class DepartmentDAO extends DBContext {
         if (c == null) return null;
 
         // SỬA: Dùng LEFT JOIN cho Candidate và hỗ trợ tìm theo ManagerID HOẶC phòng ban hiện tại của nhân sự
+        // SỬA LẦN 2: Bỏ JOIN Candidate kiểu OR gây trùng dòng (ManagerName từng bị lấy nhầm
+        // thành tên của chính nhân viên đang xem thay vì tên Trưởng phòng thật -> dữ liệu hiển thị sai lệch).
+        // ManagerName giờ CHỈ lấy từ Candidate của người thực sự là ManagerID (qua m/cm).
         String sql = "SELECT TOP 1 d.DepartmentID, d.DepartmentName, d.Description, d.ManagerID, "
-                   + "       COALESCE(c.CandidateName, e.EmployeeCode, N'Trưởng phòng') AS ManagerName "
+                   + "       COALESCE(cm.CandidateName, m.EmployeeCode, N'Trưởng phòng') AS ManagerName "
                    + "FROM dbo.Department d "
                    + "LEFT JOIN dbo.Employee m ON d.ManagerID = m.EmployeeID "
-                   + "LEFT JOIN dbo.Employee e ON (e.EmployeeID = ? AND (d.ManagerID = e.EmployeeID OR d.DepartmentName = e.Department)) "
-                   + "LEFT JOIN dbo.Candidate c ON (m.CandidateID = c.CandidateID OR e.CandidateID = c.CandidateID) "
-                   + "WHERE d.ManagerID = ? OR e.EmployeeID = ? "
+                   + "LEFT JOIN dbo.Candidate cm ON m.CandidateID = cm.CandidateID "
+                   + "LEFT JOIN dbo.Employee e ON e.EmployeeID = ? AND d.DepartmentName = e.Department "
+                   + "WHERE d.ManagerID = ? OR e.EmployeeID IS NOT NULL "
                    + "ORDER BY CASE WHEN d.ManagerID = ? THEN 1 ELSE 2 END";
 
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, employeeId);
             ps.setInt(2, employeeId);
             ps.setInt(3, employeeId);
-            ps.setInt(4, employeeId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

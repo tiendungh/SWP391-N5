@@ -169,6 +169,11 @@ public class LeaderRoomServlet extends HttpServlet {
                 // Màn hình 1: Quản lý nhân viên
                 List members = dao.getEmployeesByDepartment(leaderDept.getDepartmentName());
                 request.setAttribute("members", members);
+                // SỬA: Lấy đúng email/sđt của Trưởng phòng thực tế (trước đây JSP hardcode
+                // email người đang xem và số điện thoại cố định -> hiển thị sai lệch khi Admin/Manager đổi phòng).
+                if (leaderDept.getManagerId() != null) {
+                    request.setAttribute("leaderInfo", dao.getEmployeeDetailById(leaderDept.getManagerId()));
+                }
                 request.getRequestDispatcher("/profile/leader_members.jsp").forward(request, response);
             } else if ("topics".equals(tab)) {
                 // THÊM MỚI: Chặn Employee thường truy cập tab Chủ đề + Phân công -> hiện giao diện thông báo quyền

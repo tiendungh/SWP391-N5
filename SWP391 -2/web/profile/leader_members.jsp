@@ -93,8 +93,8 @@
                     <td><b>EMP${leaderDept.managerId}</b></td>
                     <td><b style="color: #1e3a8a;">${leaderDept.managerName}</b></td>
                     <td><span class="iv-badge iv-badge-green" style="background:#dcfce7; color:#166534; font-weight:bold; padding:4px 8px; border-radius:12px;">Trưởng nhóm / Leader</span></td>
-                    <td><c:out value="${sessionScope.userEmail}"/></td>
-                    <td>0916666666</td>
+                    <td>${leaderInfo.email}</td>
+                    <td>${leaderInfo.phone}</td>
                 </tr>
             </tbody>
         </table>
