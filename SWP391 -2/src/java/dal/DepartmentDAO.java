@@ -180,6 +180,8 @@ public class DepartmentDAO extends DBContext {
 
         String closeHistorySql = "UPDATE dbo.EmployeePositionHistory SET EndDate = CAST(GETDATE() AS DATE) "
                                + "WHERE EmployeeID = ? AND EndDate IS NULL";
+        String clearStaleManagerSql = "UPDATE dbo.Department SET ManagerID = NULL "
+                               + "WHERE ManagerID = ? AND DepartmentName <> ?";
         String updateEmpSql = "UPDATE dbo.Employee SET Department = ?, Position = ? WHERE EmployeeID = ?";
         String insertHistorySql = "INSERT INTO dbo.EmployeePositionHistory (EmployeeID, RoleID, Position, Department, StartDate, Note) "
                                 + "SELECT EmployeeID, RoleID, ?, ?, CAST(GETDATE() AS DATE), ? "
@@ -194,6 +196,13 @@ public class DepartmentDAO extends DBContext {
             try (PreparedStatement psClose = c.prepareStatement(closeHistorySql)) {
                 psClose.setInt(1, employeeId);
                 psClose.executeUpdate();
+            }
+
+            // 1b. Gỡ ManagerID cũ nếu nhân sự này đang là leader của phòng ban khác
+            try (PreparedStatement psClearMgr = c.prepareStatement(clearStaleManagerSql)) {
+                psClearMgr.setInt(1, employeeId);
+                psClearMgr.setNString(2, departmentName);
+                psClearMgr.executeUpdate();
             }
 
             // 2. Cập nhật phòng ban mới cho Employee
@@ -1018,7 +1027,7 @@ public int countEmployeesInDepartment(int departmentId) {
         return -1;
     }
 
-    String sql = "SELECT COUNT(*) FROM dbo.Employee WHERE Department = ?";
+    String sql = "SELECT COUNT(*) FROM dbo.Employee WHERE Department = ? AND IsActive = 1";
     try (PreparedStatement ps = c.prepareStatement(sql)) {
         ps.setString(1, deptName.trim());
         try (ResultSet rs = ps.executeQuery()) {
@@ -1038,13 +1047,38 @@ public boolean deleteDepartmentIfEmpty(int departmentId) {
         return false;
     }
 
-    String sql = "DELETE FROM dbo.Department WHERE DepartmentID = ?";
-    try (PreparedStatement ps = c.prepareStatement(sql)) {
-        ps.setInt(1, departmentId);
-        return ps.executeUpdate() > 0;
+    String sqlDeleteTasks = "DELETE t FROM dbo.DepartmentTask t JOIN dbo.DepartmentTopic dt ON t.TopicID = dt.TopicID WHERE dt.DepartmentID = ?";
+    String sqlDeleteTopics = "DELETE FROM dbo.DepartmentTopic WHERE DepartmentID = ?";
+    String sqlDeleteDept = "DELETE FROM dbo.Department WHERE DepartmentID = ?";
+    boolean originalAutoCommit = true;
+    try {
+        originalAutoCommit = c.getAutoCommit();
+        c.setAutoCommit(false);
+        try (PreparedStatement ps1 = c.prepareStatement(sqlDeleteTasks)) {
+            ps1.setInt(1, departmentId);
+            ps1.executeUpdate();
+        }
+        try (PreparedStatement ps2 = c.prepareStatement(sqlDeleteTopics)) {
+            ps2.setInt(1, departmentId);
+            ps2.executeUpdate();
+        }
+        boolean deleted;
+        try (PreparedStatement ps3 = c.prepareStatement(sqlDeleteDept)) {
+            ps3.setInt(1, departmentId);
+            deleted = ps3.executeUpdate() > 0;
+        }
+        c.commit();
+        return deleted;
     } catch (Exception e) {
-        e.printStackTrace();
+        try {
+            if (c != null) c.rollback();
+        } catch (Exception ignored) {}
+        System.err.println("DepartmentDAO.deleteDepartmentIfEmpty error: " + e.getMessage());
         return false;
+    } finally {
+        try {
+            if (c != null) c.setAutoCommit(originalAutoCommit);
+        } catch (Exception ignored) {}
     }
 }
 }
